@@ -22,6 +22,10 @@ const Home: NextPage = ({}): JSX.Element => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formObject = Object.fromEntries(formData.entries());
+        const taskTitle = formObject.taskTitle;
+        if (typeof taskTitle !== "string" || !taskTitle.trim()) {
+            return;
+        }
         const response = await fetch("/api/tasks", {
             method: "POST",
             headers: {
