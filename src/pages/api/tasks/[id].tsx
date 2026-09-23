@@ -7,6 +7,17 @@ export default async function handler(
 ) {
     const { id } = req.query;
 
+    const rawTitle = req.body?.taskTitle;
+
+    if (typeof rawTitle !== "string" || !rawTitle.trim()) {
+        return res.status(400).json({
+            success: false,
+            error: "Task title is required",
+        });
+    }
+
+    const title = rawTitle.trim();
+
     if (req.method === "PUT") {
         try {
             await pool.query(
@@ -14,7 +25,7 @@ export default async function handler(
                 UPDATE "public"."tasks"
                 SET "title" = $1
                 WHERE "id" = $2`,
-                [req.body.taskTitle, id],
+                [title, id],
             );
             res.status(200).json({
                 success: true,
