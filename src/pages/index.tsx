@@ -99,7 +99,10 @@ const Home: NextPage = ({}): JSX.Element => {
                     <TaskForm
                         task={selectedTask}
                         onSubmit={
-                            selectedTask ? (event) => handleUpdateTask(event, selectedTask.id) : handleNewTask
+                            selectedTask
+                                ? (event) =>
+                                      handleUpdateTask(event, selectedTask.id)
+                                : handleNewTask
                         }
                         onCancel={closeTaskForm}
                         isEditing={selectedTask !== null}
@@ -112,13 +115,13 @@ const Home: NextPage = ({}): JSX.Element => {
                         {tasksInDb.map((task) => (
                             <TaskListItem key={task.id}>
                                 <input type="checkbox" />
-                                <span
+                                <button
                                     onClick={() => {
                                         openEditTaskForm(task);
                                     }}
                                 >
                                     {task.title}
-                                </span>
+                                </button>
                             </TaskListItem>
                         ))}
                     </Tasklist>
@@ -154,5 +157,19 @@ const TaskListItem = styled.li`
 
     > input {
         margin-right: 16px;
+
+        &:hover {
+            cursor: pointer;
+        }
+    }
+
+    > button {
+        background: none;
+        border: none;
+        font-size: 1rem;
+
+        &:hover {
+            cursor: pointer;
+        }
     }
 `;

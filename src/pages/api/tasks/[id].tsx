@@ -7,18 +7,18 @@ export default async function handler(
 ) {
     const { id } = req.query;
 
-    const rawTitle = req.body?.taskTitle;
-
-    if (typeof rawTitle !== "string" || !rawTitle.trim()) {
-        return res.status(400).json({
-            success: false,
-            error: "Task title is required",
-        });
-    }
-
-    const title = rawTitle.trim();
-
     if (req.method === "PUT") {
+        const rawTitle = req.body?.taskTitle;
+
+        if (typeof rawTitle !== "string" || !rawTitle.trim()) {
+            return res.status(400).json({
+                success: false,
+                error: "Task title is required",
+            });
+        }
+
+        const title = rawTitle.trim();
+
         try {
             const result = await pool.query(
                 `
@@ -34,7 +34,7 @@ export default async function handler(
                     error: "Task not found",
                 });
             }
-            
+
             res.status(200).json({
                 success: true,
                 message: "Task successfully updated",
