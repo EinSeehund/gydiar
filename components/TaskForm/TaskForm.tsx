@@ -11,12 +11,14 @@ type TaskFormProps = {
 export default function TaskForm({ onCancel, onSubmit }: TaskFormProps) {
     return (
         <StyledForm onSubmit={onSubmit}>
-            <StyledInput type="text" name="taskTitle" autoFocus={true} />
+            <StyledInput
+                type="text"
+                name="taskTitle"
+                autoFocus={true}
+                required
+            />
             <ButtonContainer>
-                <ButtonPrimary
-                    text="Create"
-                    type="submit"
-                />
+                <ButtonPrimary text="Create" type="submit" />
                 <ButtonSecondary
                     text="Cancel"
                     type="button"

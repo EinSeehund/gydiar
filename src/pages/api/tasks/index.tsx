@@ -13,18 +13,24 @@ export default async function handler(
             console.error("DB connection error:", error);
             res.status(500).json({ success: false, error: String(error) });
         }
-    }
-
-    if (req.method === "POST") {
+    } else if (req.method === "POST") {
         try {
-            await pool.query(`
+            await pool.query(
+                `
                 INSERT INTO "public"."tasks" ("title")
-                VALUES ('${req.body.taskTitle}');
-            `);
-            res.status(200).json({ success: true, message: "Task successfully created" });
+                VALUES ($1)
+            `,
+                [req.body.taskTitle],
+            );
+            res.status(200).json({
+                success: true,
+                message: "Task successfully created",
+            });
         } catch (error) {
             console.error("DB connection error:", error);
             res.status(500).json({ success: false, error: String(error) });
         }
+    } else {
+        res.status(405).json({ success: false, error: "Method Not Allowed" });
     }
 }
