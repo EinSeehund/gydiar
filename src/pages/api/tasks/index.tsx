@@ -5,11 +5,26 @@ export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
-    try {
-        const result = await pool.query("SELECT * FROM tasks");
-        res.status(200).json({ success: true, tasks: result.rows });
-    } catch (error) {
-        console.error("DB connection error:", error);
-        res.status(500).json({ success: false, error: String(error) });
+    if (req.method === "GET") {
+        try {
+            const result = await pool.query("SELECT * FROM tasks");
+            res.status(200).json({ success: true, tasks: result.rows });
+        } catch (error) {
+            console.error("DB connection error:", error);
+            res.status(500).json({ success: false, error: String(error) });
+        }
+    }
+
+    if (req.method === "POST") {
+        try {
+            await pool.query(`
+                INSERT INTO "public"."tasks" ("title")
+                VALUES ('${req.body.taskTitle}');
+            `);
+            res.status(200).json({ success: true, message: "Task successfully created" });
+        } catch (error) {
+            console.error("DB connection error:", error);
+            res.status(500).json({ success: false, error: String(error) });
+        }
     }
 }
