@@ -7,7 +7,7 @@ export default async function handler(
 ) {
     if (req.method === "GET") {
         try {
-            const result = await pool.query("SELECT * FROM tasks");
+            const result = await pool.query("SELECT * FROM tasks ORDER BY id");
             res.status(200).json({ success: true, tasks: result.rows });
         } catch (error) {
             console.error("DB connection error:", error);

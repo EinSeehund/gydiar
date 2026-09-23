@@ -1,24 +1,36 @@
-import type { SubmitEvent } from "react";
+import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
+import { Task } from "@/types/task";
 
 type TaskFormProps = {
+    task: Task | null;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
+    isEditing: boolean;
 };
 
-export default function TaskForm({ onCancel, onSubmit }: TaskFormProps) {
+export default function TaskForm({
+    task,
+    onCancel,
+    onSubmit,
+    isEditing,
+}: TaskFormProps) {
     return (
         <StyledForm onSubmit={onSubmit}>
             <StyledInput
                 type="text"
                 name="taskTitle"
-                autoFocus={true}
+                autoFocus={!isEditing}
+                defaultValue={task?.title}
                 required
             />
             <ButtonContainer>
-                <ButtonPrimary text="Create" type="submit" />
+                <ButtonPrimary
+                    text={isEditing ? "Update" : "Create"}
+                    type="submit"
+                />
                 <ButtonSecondary
                     text="Cancel"
                     type="button"
