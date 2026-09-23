@@ -20,13 +20,21 @@ export default async function handler(
 
     if (req.method === "PUT") {
         try {
-            await pool.query(
+            const result = await pool.query(
                 `
                 UPDATE "public"."tasks"
                 SET "title" = $1
                 WHERE "id" = $2`,
                 [title, id],
             );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: "Task not found",
+                });
+            }
+            
             res.status(200).json({
                 success: true,
                 message: "Task successfully updated",
