@@ -6,14 +6,27 @@ import { useState, type JSX, type SubmitEvent } from "react";
 import Modal from "../../components/Modal/Modal";
 import TaskForm from "../../components/TaskForm/TaskForm";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
+import { Task } from "@/types/task";
 
 const Home: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
+    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
     const { data, error, isLoading, mutate } = useTasks();
 
-    function toggleTaskForm(): void {
-        setShowTaskForm(!showTaskForm);
+    function openNewTaskForm(): void {
+        setSelectedTask(null);
+        setShowTaskForm(true);
+    }
+
+    function openEditTaskForm(task: Task): void {
+        setSelectedTask(task);
+        setShowTaskForm(true);
+    }
+
+    function closeTaskForm(): void {
+        setSelectedTask(null);
+        setShowTaskForm(false);
     }
 
     async function handleNewTask(
@@ -28,6 +41,33 @@ const Home: NextPage = ({}): JSX.Element => {
         }
         const response = await fetch("/api/tasks", {
             method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(formObject),
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        await mutate();
+        setShowTaskForm(false);
+    }
+
+    async function handleUpdateTask(
+        event: SubmitEvent<HTMLFormElement>,
+        id: number,
+    ): Promise<void> {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const formObject = Object.fromEntries(formData.entries());
+        const taskTitle = formObject.taskTitle;
+        if (typeof taskTitle !== "string" || !taskTitle.trim()) {
+            return;
+        }
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
@@ -57,8 +97,12 @@ const Home: NextPage = ({}): JSX.Element => {
             {showTaskForm && (
                 <Modal>
                     <TaskForm
-                        onSubmit={handleNewTask}
-                        onCancel={toggleTaskForm}
+                        task={selectedTask}
+                        onSubmit={
+                            selectedTask ? (event) => handleUpdateTask(event, selectedTask.id) : handleNewTask
+                        }
+                        onCancel={closeTaskForm}
+                        isEditing={selectedTask !== null}
                     />
                 </Modal>
             )}
@@ -68,14 +112,22 @@ const Home: NextPage = ({}): JSX.Element => {
                         {tasksInDb.map((task) => (
                             <TaskListItem key={task.id}>
                                 <input type="checkbox" />
-                                {task.title}
+                                <span
+                                    onClick={() => {
+                                        openEditTaskForm(task);
+                                    }}
+                                >
+                                    {task.title}
+                                </span>
                             </TaskListItem>
                         ))}
                     </Tasklist>
                     <ButtonPrimary
                         text="Add Task"
                         type="button"
-                        onClick={toggleTaskForm}
+                        onClick={() => {
+                            openNewTaskForm();
+                        }}
                     />
                 </Container>
             </main>
