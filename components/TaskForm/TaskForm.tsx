@@ -3,18 +3,21 @@ import styled from "styled-components";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import { Task } from "@/types/task";
+import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
 
 type TaskFormProps = {
     task: Task | null;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
+    onDelete: (id: number) => void;
     isEditing: boolean;
 };
 
 export default function TaskForm({
     task,
-    onCancel,
     onSubmit,
+    onCancel,
+    onDelete,
     isEditing,
 }: TaskFormProps) {
     return (
@@ -37,6 +40,13 @@ export default function TaskForm({
                     onClick={onCancel}
                 />
             </ButtonContainer>
+            {task && (
+                <ButtonTertiary
+                    text="Delete"
+                    type="button"
+                    onClick={() => onDelete(task.id)}
+                />
+            )}
         </StyledForm>
     );
 }

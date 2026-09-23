@@ -82,6 +82,22 @@ const Home: NextPage = ({}): JSX.Element => {
         setShowTaskForm(false);
     }
 
+    async function handleDeleteTask(id: number): Promise<void> {
+        const response = await fetch(`/api/tasks/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        await mutate();
+        setShowTaskForm(false);
+    }
+
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Failed to load tasks.</p>;
 
@@ -105,6 +121,7 @@ const Home: NextPage = ({}): JSX.Element => {
                                 : handleNewTask
                         }
                         onCancel={closeTaskForm}
+                        onDelete={handleDeleteTask}
                         isEditing={selectedTask !== null}
                     />
                 </Modal>
