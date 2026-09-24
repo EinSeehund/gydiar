@@ -43,6 +43,34 @@ export default async function handler(
             console.error("DB connection error:", error);
             res.status(500).json({ success: false, error: String(error) });
         }
+    } else if (req.method === "PATCH") {
+        const newStatus = req.body;
+
+        try {
+            const result = await pool.query(
+                `
+                UPDATE "public"."tasks"
+                SET "status" = $1
+                WHERE "id" = $2
+                `,
+                [newStatus, id],
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({
+                    success: false,
+                    error: "Task not found",
+                });
+            }
+
+            res.status(200).json({
+                success: true,
+                message: "Task successfully updated",
+            });
+        } catch (error) {
+            console.error("DB connection error:", error);
+            res.status(500).json({ success: false, error: String(error) });
+        }
     } else if (req.method === "DELETE") {
         try {
             const result = await pool.query(
