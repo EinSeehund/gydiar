@@ -98,10 +98,31 @@ const Home: NextPage = ({}): JSX.Element => {
         setShowTaskForm(false);
     }
 
+    async function handleUpdateTaskStatus(
+        id: number,
+        newStatus: "open" | "done",
+    ): Promise<void> {
+        const response = await fetch(`api/tasks/${id}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(newStatus),
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        await mutate();
+    }
+
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Failed to load tasks.</p>;
 
     const tasksInDb = data?.tasks ?? [];
+    const activeTasks = tasksInDb.filter((task) => task.status === "open");
+    const doneTasks = tasksInDb.filter((task) => task.status === "done");
 
     return (
         <>
@@ -128,10 +149,17 @@ const Home: NextPage = ({}): JSX.Element => {
             )}
             <main>
                 <Container>
-                    <Tasklist>
-                        {tasksInDb.map((task) => (
+                    <TaskListActive>
+                        {activeTasks.map((task) => (
                             <TaskListItem key={task.id}>
-                                <input type="checkbox" />
+                                <input
+                                    type="checkbox"
+                                    checked={task.status === "done"}
+                                    onChange={() =>
+                                        handleUpdateTaskStatus(task.id, "done")
+                                    }
+                                    aria-label={`Mark ${task.title} as done`}
+                                />
                                 <button
                                     onClick={() => {
                                         openEditTaskForm(task);
@@ -141,7 +169,7 @@ const Home: NextPage = ({}): JSX.Element => {
                                 </button>
                             </TaskListItem>
                         ))}
-                    </Tasklist>
+                    </TaskListActive>
                     <ButtonPrimary
                         text="Add Task"
                         type="button"
@@ -149,6 +177,27 @@ const Home: NextPage = ({}): JSX.Element => {
                             openNewTaskForm();
                         }}
                     />
+                    <TaskListDone>
+                        {doneTasks.map((task) => (
+                            <TaskListItem key={task.id}>
+                                <input
+                                    type="checkbox"
+                                    checked={task.status === "done"}
+                                    onChange={() =>
+                                        handleUpdateTaskStatus(task.id, "open")
+                                    }
+                                    aria-label={`Mark ${task.title} as open`}
+                                />
+                                <button
+                                    onClick={() => {
+                                        openEditTaskForm(task);
+                                    }}
+                                >
+                                    {task.title}
+                                </button>
+                            </TaskListItem>
+                        ))}
+                    </TaskListDone>
                 </Container>
             </main>
         </>
@@ -161,12 +210,33 @@ const Container = styled.div`
     padding: 64px;
 `;
 
-const Tasklist = styled.ul`
+const TaskListActive = styled.ul`
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: 16px;
     margin-bottom: 32px;
+`;
+
+const TaskListDone = styled.ul`
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 32px;
+    margin-bottom: 32px;
+    padding-top: 16px;
+    border-top: 2px dotted gray;
+
+    > li,
+    > li > button {
+        color: gray;
+        text-decoration: line-through;
+    }
+
+    input[type="checkbox"] {
+        accent-color: gray; /* Change to your preferred color */
+    }
 `;
 
 const TaskListItem = styled.li`
