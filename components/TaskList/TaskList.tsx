@@ -1,7 +1,11 @@
 import type { Task } from "@/types/task";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
-import { useState } from "react";
+import { useMemo } from "react";
+
+type TaskWithChildren = Task & {
+    children: Task[];
+};
 
 type TaskListProps = {
     taskList: Task[];
@@ -14,12 +18,30 @@ export default function TaskList({
     onCheckboxChange,
     onTitleClick,
 }: TaskListProps) {
-    const [showDoneTasks, setShowDoneTasks] = useState<boolean>(false);
+    const taskTree = useMemo<TaskWithChildren[]>(() => {
+        const childrenMap = new Map<number, Task[]>();
+        const rootTasks: Task[] = [];
+
+        taskList.forEach((task) => {
+            if (task.parent_task_id === null) {
+                rootTasks.push(task);
+            } else {
+                const siblings = childrenMap.get(task.parent_task_id) ?? [];
+                siblings.push(task);
+                childrenMap.set(task.parent_task_id, siblings);
+            }
+        });
+
+        return rootTasks.map((task) => ({
+            ...task,
+            children: childrenMap.get(task.id) ?? [],
+        }));
+    }, [taskList]);
 
     return (
         <TaskListWrapper>
             <TaskListOpen>
-                {taskList
+                {taskTree
                     .filter(
                         (task) =>
                             task.status === "open" &&
@@ -37,7 +59,7 @@ export default function TaskList({
             <StyledDetails>
                 <StyledSummary>Done Tasks</StyledSummary>
                 <TaskListDone>
-                    {taskList
+                    {taskTree
                         .filter(
                             (task) =>
                                 task.status === "done" &&
@@ -82,7 +104,7 @@ const TaskListDone = styled.ul`
     }
 
     input[type="checkbox"] {
-        accent-color: gray; /* Change to your preferred color */
+        accent-color: gray;
     }
 `;
 
