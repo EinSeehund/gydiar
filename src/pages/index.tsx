@@ -234,7 +234,9 @@ const TaskListDone = styled.ul`
         text-decoration: line-through;
     }
 
-    
+    input[type="checkbox"] {
+        accent-color: gray; /* Change to your preferred color */
+    }
 `;
 
 const TaskListItem = styled.li`
