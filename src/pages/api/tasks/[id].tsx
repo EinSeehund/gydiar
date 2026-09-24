@@ -46,6 +46,13 @@ export default async function handler(
     } else if (req.method === "PATCH") {
         const newStatus = req.body;
 
+        if (!["open", "done"].includes(newStatus)) {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid status value",
+            });
+        }
+
         try {
             const result = await pool.query(
                 `
