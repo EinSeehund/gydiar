@@ -124,8 +124,6 @@ const Home: NextPage = ({}): JSX.Element => {
     const activeTasks = tasksInDb.filter((task) => task.status === "open");
     const doneTasks = tasksInDb.filter((task) => task.status === "done");
 
-    console.log(activeTasks, doneTasks);
-
     return (
         <>
             <Head>
@@ -160,6 +158,7 @@ const Home: NextPage = ({}): JSX.Element => {
                                     onChange={() =>
                                         handleUpdateTaskStatus(task.id, "done")
                                     }
+                                    aria-label={`Mark ${task.title} as done`}
                                 />
                                 <button
                                     onClick={() => {
@@ -187,6 +186,7 @@ const Home: NextPage = ({}): JSX.Element => {
                                     onChange={() =>
                                         handleUpdateTaskStatus(task.id, "open")
                                     }
+                                    aria-label={`Mark ${task.title} as open`}
                                 />
                                 <button
                                     onClick={() => {
@@ -233,6 +233,8 @@ const TaskListDone = styled.ul`
         color: gray;
         text-decoration: line-through;
     }
+
+    
 `;
 
 const TaskListItem = styled.li`
