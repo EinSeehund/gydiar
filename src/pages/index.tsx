@@ -7,6 +7,7 @@ import Modal from "../../components/Modal/Modal";
 import TaskForm from "../../components/TaskForm/TaskForm";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import { Task } from "@/types/task";
+import TaskList from "../../components/TaskList/TaskList";
 
 const Home: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
@@ -121,8 +122,6 @@ const Home: NextPage = ({}): JSX.Element => {
     if (error) return <p>Failed to load tasks.</p>;
 
     const tasksInDb = data?.tasks ?? [];
-    const activeTasks = tasksInDb.filter((task) => task.status === "open");
-    const doneTasks = tasksInDb.filter((task) => task.status === "done");
 
     return (
         <>
@@ -149,27 +148,11 @@ const Home: NextPage = ({}): JSX.Element => {
             )}
             <main>
                 <Container>
-                    <TaskListActive>
-                        {activeTasks.map((task) => (
-                            <TaskListItem key={task.id}>
-                                <input
-                                    type="checkbox"
-                                    checked={task.status === "done"}
-                                    onChange={() =>
-                                        handleUpdateTaskStatus(task.id, "done")
-                                    }
-                                    aria-label={`Mark ${task.title} as done`}
-                                />
-                                <button
-                                    onClick={() => {
-                                        openEditTaskForm(task);
-                                    }}
-                                >
-                                    {task.title}
-                                </button>
-                            </TaskListItem>
-                        ))}
-                    </TaskListActive>
+                    <TaskList
+                        taskList={tasksInDb}
+                        onCheckboxChange={handleUpdateTaskStatus}
+                        onTitleClick={openEditTaskForm}
+                    />
                     <ButtonPrimary
                         text="Add Task"
                         type="button"
@@ -177,27 +160,6 @@ const Home: NextPage = ({}): JSX.Element => {
                             openNewTaskForm();
                         }}
                     />
-                    <TaskListDone>
-                        {doneTasks.map((task) => (
-                            <TaskListItem key={task.id}>
-                                <input
-                                    type="checkbox"
-                                    checked={task.status === "done"}
-                                    onChange={() =>
-                                        handleUpdateTaskStatus(task.id, "open")
-                                    }
-                                    aria-label={`Mark ${task.title} as open`}
-                                />
-                                <button
-                                    onClick={() => {
-                                        openEditTaskForm(task);
-                                    }}
-                                >
-                                    {task.title}
-                                </button>
-                            </TaskListItem>
-                        ))}
-                    </TaskListDone>
                 </Container>
             </main>
         </>
@@ -208,55 +170,4 @@ export default Home;
 
 const Container = styled.div`
     padding: 64px;
-`;
-
-const TaskListActive = styled.ul`
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 32px;
-`;
-
-const TaskListDone = styled.ul`
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 32px;
-    margin-bottom: 32px;
-    padding-top: 16px;
-    border-top: 2px dotted gray;
-
-    > li,
-    > li > button {
-        color: gray;
-        text-decoration: line-through;
-    }
-
-    input[type="checkbox"] {
-        accent-color: gray; /* Change to your preferred color */
-    }
-`;
-
-const TaskListItem = styled.li`
-    font-size: 1rem;
-
-    > input {
-        margin-right: 16px;
-
-        &:hover {
-            cursor: pointer;
-        }
-    }
-
-    > button {
-        background: none;
-        border: none;
-        font-size: 1rem;
-
-        &:hover {
-            cursor: pointer;
-        }
-    }
 `;
