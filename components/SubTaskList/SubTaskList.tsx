@@ -4,8 +4,7 @@ import { type SubmitEvent } from "react";
 import SubTaskListItem from "../SubTaskListItem/SubTaskListItem";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import { useState } from "react";
-import ButtonPrimarySmall from "../ButtonPrimary/ButtonPrimarySmall";
-import ButtonSecondarySmall from "../ButtonSecondary/ButtonSecondarySmall";
+import SubTaskForm from "../SubTaskForm/SubTaskForm";
 
 type SubTaskListProps = {
     subTasks: Task[];
@@ -15,6 +14,8 @@ type SubTaskListProps = {
         event: SubmitEvent<HTMLFormElement>,
         parentTaskId: number,
     ) => void;
+    onDelete: (id: number) => void;
+    onUpdateSubTask: (event: SubmitEvent<HTMLFormElement>, id: number) => void;
 };
 
 export default function SubTaskList({
@@ -22,6 +23,8 @@ export default function SubTaskList({
     parentTaskId,
     onCheckboxChange,
     onSubmitSubTask,
+    onDelete,
+    onUpdateSubTask
 }: SubTaskListProps) {
     const [showSubTaskForm, setShowSubTaskForm] = useState<boolean>(false);
 
@@ -39,7 +42,10 @@ export default function SubTaskList({
                             <SubTaskListItem
                                 key={subTask.id}
                                 subTask={subTask}
+                                parentTaskId={parentTaskId}
                                 onCheckboxChange={onCheckboxChange}
+                                onDelete={onDelete}
+                                onUpdateSubTask={onUpdateSubTask}
                             />
                         ))}
                 </SubTaskListOpen>
@@ -50,7 +56,10 @@ export default function SubTaskList({
                             <SubTaskListItem
                                 key={subTask.id}
                                 subTask={subTask}
+                                parentTaskId={parentTaskId}
                                 onCheckboxChange={onCheckboxChange}
+                                onDelete={onDelete}
+                                onUpdateSubTask={onUpdateSubTask}
                             />
                         ))}
                 </SubTaskListDone>
@@ -63,20 +72,15 @@ export default function SubTaskList({
                 )}
                 {showSubTaskForm && (
                     <SubTaskForm
-                        onSubmit={(event) => {
-                            onSubmitSubTask(event, parentTaskId);
+                        task={null}
+                        parentTaskId={parentTaskId}
+                        isEditing={false}
+                        onSubmit={onSubmitSubTask}
+                        onCancel={toggleSubTaskForm}
+                        onDelete={() => {
+                            console.log("Implement this!");
                         }}
-                    >
-                        <TitleInput type="text" name="subTaskTitle" autoFocus={true} />
-                        <ButtonContainer>
-                            <ButtonPrimarySmall text="Add" type="submit" />
-                            <ButtonSecondarySmall
-                                text="Cancel"
-                                type="button"
-                                onClick={toggleSubTaskForm}
-                            />
-                        </ButtonContainer>
-                    </SubTaskForm>
+                    />
                 )}
             </SubTaskListWrapper>
         </>
@@ -113,22 +117,4 @@ const SubTaskListDone = styled.ul`
     input[type="checkbox"] {
         accent-color: gray;
     }
-`;
-
-const SubTaskForm = styled.form`
-    padding-left: 24px;
-`;
-
-const TitleInput = styled.input`
-    width: 100%;
-    padding: 4px;
-    border-radius: 8px;
-    border: 1px solid #bdbdbd;
-    margin-bottom: 8px;
-    font-size: 1rem;
-`;
-
-const ButtonContainer = styled.div`
-    display: flex;
-    gap: 8px;
 `;

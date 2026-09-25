@@ -69,11 +69,12 @@ const Home: NextPage = ({}): JSX.Element => {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formObject = Object.fromEntries(formData.entries());
-        const taskTitle = formObject.subTaskTitle;
+        const taskTitle = formObject.taskTitle;
+
         if (typeof taskTitle !== "string" || !taskTitle.trim()) {
             return;
         }
-        
+
         const payload = {
             taskTitle,
             parent_task_id: parentTaskId,
@@ -105,6 +106,7 @@ const Home: NextPage = ({}): JSX.Element => {
         if (typeof taskTitle !== "string" || !taskTitle.trim()) {
             return;
         }
+        
         const response = await fetch(`/api/tasks/${id}`, {
             method: "PUT",
             headers: {
@@ -197,6 +199,7 @@ const Home: NextPage = ({}): JSX.Element => {
                         onDelete={handleDeleteTask}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onSubmitSubTask={handleNewSubTask}
+                        onUpdateSubTask={handleUpdateTask}
                         isEditing={selectedTask !== null}
                     />
                 </Modal>
@@ -208,6 +211,8 @@ const Home: NextPage = ({}): JSX.Element => {
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}
+                        onDelete={handleDeleteTask}
+                        onUpdateSubTask={handleUpdateTask}
                     />
                     <ButtonPrimary
                         text="Add Task"

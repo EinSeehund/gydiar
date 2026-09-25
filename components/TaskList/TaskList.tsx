@@ -16,6 +16,8 @@ type TaskListProps = {
         event: SubmitEvent<HTMLFormElement>,
         parentTaskId: number,
     ) => void;
+    onDelete: (id: number) => void;
+    onUpdateSubTask: (event: SubmitEvent<HTMLFormElement>, id: number) => void;
 };
 
 export default function TaskList({
@@ -23,6 +25,8 @@ export default function TaskList({
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
+    onDelete,
+    onUpdateSubTask
 }: TaskListProps) {
     const taskTree: TaskWithChildren[] = useMemo<TaskWithChildren[]>(() => {
         const childrenMap = new Map<number, Task[]>();
@@ -61,6 +65,8 @@ export default function TaskList({
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
                             onSubmitSubTask={onSubmitSubTask}
+                            onDelete={onDelete}
+                            onUpdateSubTask={onUpdateSubTask}
                         />
                     ))}
             </TaskListOpen>
@@ -80,6 +86,8 @@ export default function TaskList({
                                 onCheckboxChange={onCheckboxChange}
                                 onTitleClick={onTitleClick}
                                 onSubmitSubTask={onSubmitSubTask}
+                                onDelete={onDelete}
+                                onUpdateSubTask={onUpdateSubTask}
                             />
                         ))}
                 </TaskListDone>

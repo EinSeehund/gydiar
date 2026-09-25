@@ -15,6 +15,8 @@ type TaskListItemProps = {
         event: SubmitEvent<HTMLFormElement>,
         parentTaskId: number,
     ) => void;
+    onDelete: (id: number) => void;
+    onUpdateSubTask: (event: SubmitEvent<HTMLFormElement>, id: number) => void;
 };
 
 export default function TaskListItem({
@@ -22,6 +24,8 @@ export default function TaskListItem({
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
+    onDelete,
+    onUpdateSubTask
 }: TaskListItemProps) {
     return (
         <ListItem>
@@ -52,6 +56,8 @@ export default function TaskListItem({
                         onCheckboxChange={onCheckboxChange}
                         onSubmitSubTask={onSubmitSubTask}
                         parentTaskId={task.id}
+                        onDelete={onDelete}
+                        onUpdateSubTask={onUpdateSubTask}
                     />
                 </StyledDetails>
             )}

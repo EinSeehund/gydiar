@@ -21,6 +21,7 @@ type TaskFormProps = {
         event: SubmitEvent<HTMLFormElement>,
         parentTaskId: number,
     ) => void;
+    onUpdateSubTask: (event: SubmitEvent<HTMLFormElement>, id: number) => void;
 };
 
 export default function TaskForm({
@@ -31,6 +32,7 @@ export default function TaskForm({
     onCheckboxChange,
     isEditing,
     onSubmitSubTask,
+    onUpdateSubTask
 }: TaskFormProps) {
     return (
         <>
@@ -66,7 +68,9 @@ export default function TaskForm({
                     subTasks={task.children}
                     onCheckboxChange={onCheckboxChange}
                     onSubmitSubTask={onSubmitSubTask}
+                    onDelete={onDelete}
                     parentTaskId={task.id}
+                    onUpdateSubTask={onUpdateSubTask}
                 />
             )}
         </>
