@@ -1,9 +1,9 @@
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import { Task } from "@/types/task";
-import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
 import ButtonPrimarySmall from "../ButtonPrimary/ButtonPrimarySmall";
 import ButtonSecondarySmall from "../ButtonSecondary/ButtonSecondarySmall";
+import ButtonTertiarySmall from "../ButtonTertiary/ButtonTertiarySmall";
 
 type SubTaskFormProps = {
     task: Task | null;
@@ -17,6 +17,10 @@ type SubTaskFormProps = {
     onDelete: (id: number) => void;
 };
 
+interface StyledFormProps {
+    $isEditing: boolean;
+}
+
 export default function SubTaskForm({
     task,
     parentTaskId,
@@ -25,12 +29,18 @@ export default function SubTaskForm({
     onCancel,
     onDelete,
 }: SubTaskFormProps) {
+    function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+        onSubmit(event, parentTaskId);
+        event.target.reset();
+    }
+
     return (
         <>
             <StyledForm
                 onSubmit={(event) => {
-                    onSubmit(event, parentTaskId);
+                    handleSubmit(event);
                 }}
+                $isEditing={isEditing}
             >
                 <StyledInput
                     type="text"
@@ -51,7 +61,7 @@ export default function SubTaskForm({
                     />
                 </ButtonContainer>
                 {task && (
-                    <ButtonTertiary
+                    <ButtonTertiarySmall
                         text="Delete"
                         type="button"
                         onClick={() => onDelete(task.id)}
@@ -62,13 +72,16 @@ export default function SubTaskForm({
     );
 }
 
-const StyledForm = styled.form`
-    padding-left: 24px;
+const StyledForm = styled.form<StyledFormProps>`
+    padding-left: ${({ $isEditing }) => ($isEditing ? "0" : "24px")};
+    margin-top: ${({ $isEditing }) => ($isEditing ? "-5px" : "0")};
+    transform: ${({ $isEditing }) => ($isEditing ? "translate(-5px)" : "none")};
 `;
 
 const ButtonContainer = styled.div`
     display: flex;
     gap: 8px;
+    margin-bottom: 8px;
 `;
 
 const StyledInput = styled.input`

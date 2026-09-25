@@ -5,14 +5,16 @@ type ButtonSecondaryProps = {
     text: string;
     type: ButtonHTMLAttributes<HTMLButtonElement>["type"];
     onClick?: MouseEventHandler<HTMLButtonElement>;
+    className?: string;
 };
 
 export default function ButtonSecondary({
     text,
     type,
     onClick,
+    className
 }: ButtonSecondaryProps): JSX.Element {
-    return <StyledButton type={type} onClick={onClick}>{text}</StyledButton>;
+    return <StyledButton className={className} type={type} onClick={onClick}>{text}</StyledButton>;
 }
 
 const StyledButton = styled.button`

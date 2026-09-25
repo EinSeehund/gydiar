@@ -15,6 +15,7 @@ type TaskFormProps = {
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;
+    onCloseForm: () => void;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     isEditing: boolean;
     onSubmitSubTask: (
@@ -29,14 +30,26 @@ export default function TaskForm({
     onSubmit,
     onCancel,
     onDelete,
+    onCloseForm,
     onCheckboxChange,
     isEditing,
     onSubmitSubTask,
-    onUpdateSubTask
+    onUpdateSubTask,
 }: TaskFormProps) {
+    function handleDelete(taskId: number) {
+        if (task) {
+            onDelete(taskId);
+            onCloseForm();
+        }
+    }
+    function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
+        onSubmit(event);
+        onCloseForm();
+    }
+
     return (
         <>
-            <StyledForm onSubmit={onSubmit}>
+            <StyledForm onSubmit={handleSubmit}>
                 <StyledInput
                     type="text"
                     name="taskTitle"
@@ -59,19 +72,21 @@ export default function TaskForm({
                     <ButtonTertiary
                         text="Delete"
                         type="button"
-                        onClick={() => onDelete(task.id)}
+                        onClick={() => handleDelete(task.id)}
                     />
                 )}
             </StyledForm>
             {task !== null && (
-                <SubTaskList
-                    subTasks={task.children}
-                    onCheckboxChange={onCheckboxChange}
-                    onSubmitSubTask={onSubmitSubTask}
-                    onDelete={onDelete}
-                    parentTaskId={task.id}
-                    onUpdateSubTask={onUpdateSubTask}
-                />
+                <SubTaskListContainer>
+                    <SubTaskList
+                        subTasks={task.children}
+                        onCheckboxChange={onCheckboxChange}
+                        onSubmitSubTask={onSubmitSubTask}
+                        onDelete={onDelete}
+                        parentTaskId={task.id}
+                        onUpdateSubTask={onUpdateSubTask}
+                    />
+                </SubTaskListContainer>
             )}
         </>
     );
@@ -95,4 +110,8 @@ const StyledInput = styled.input`
     border-radius: 8px;
     border: 1px solid #bdbdbd;
     font-size: 1rem;
+`;
+
+const SubTaskListContainer = styled.div`
+    transform: translate(-32px);
 `;

@@ -24,7 +24,7 @@ export default function SubTaskList({
     onCheckboxChange,
     onSubmitSubTask,
     onDelete,
-    onUpdateSubTask
+    onUpdateSubTask,
 }: SubTaskListProps) {
     const [showSubTaskForm, setShowSubTaskForm] = useState<boolean>(false);
 
@@ -32,27 +32,31 @@ export default function SubTaskList({
         setShowSubTaskForm(!showSubTaskForm);
     }
 
+    const subTasksOpen = subTasks.filter(
+        (subTask) => subTask.status === "open",
+    );
+    const subTasksDone = subTasks.filter(
+        (subTask) => subTask.status === "done",
+    );
+
     return (
         <>
             <SubTaskListWrapper>
                 <SubTaskListOpen>
-                    {subTasks
-                        .filter((subTask) => subTask.status === "open")
-                        .map((subTask) => (
-                            <SubTaskListItem
-                                key={subTask.id}
-                                subTask={subTask}
-                                parentTaskId={parentTaskId}
-                                onCheckboxChange={onCheckboxChange}
-                                onDelete={onDelete}
-                                onUpdateSubTask={onUpdateSubTask}
-                            />
-                        ))}
+                    {subTasksOpen.map((subTask) => (
+                        <SubTaskListItem
+                            key={subTask.id}
+                            subTask={subTask}
+                            parentTaskId={parentTaskId}
+                            onCheckboxChange={onCheckboxChange}
+                            onDelete={onDelete}
+                            onUpdateSubTask={onUpdateSubTask}
+                        />
+                    ))}
                 </SubTaskListOpen>
-                <SubTaskListDone>
-                    {subTasks
-                        .filter((subTask) => subTask.status === "done")
-                        .map((subTask) => (
+                {subTasksDone.length > 0 && (
+                    <SubTaskListDone>
+                        {subTasksDone.map((subTask) => (
                             <SubTaskListItem
                                 key={subTask.id}
                                 subTask={subTask}
@@ -62,9 +66,10 @@ export default function SubTaskList({
                                 onUpdateSubTask={onUpdateSubTask}
                             />
                         ))}
-                </SubTaskListDone>
+                    </SubTaskListDone>
+                )}
                 {!showSubTaskForm && (
-                    <ButtonSecondary
+                    <AddSubTaskButton
                         text="+ Add Sub-Task"
                         type="button"
                         onClick={toggleSubTaskForm}
@@ -77,9 +82,7 @@ export default function SubTaskList({
                         isEditing={false}
                         onSubmit={onSubmitSubTask}
                         onCancel={toggleSubTaskForm}
-                        onDelete={() => {
-                            console.log("Implement this!");
-                        }}
+                        onDelete={() => {}}
                     />
                 )}
             </SubTaskListWrapper>
@@ -89,8 +92,8 @@ export default function SubTaskList({
 
 const SubTaskListWrapper = styled.section`
     border-left: 1px dashed gray;
-    margin: 16px 0 16px 32px;
-    padding: 0 0 0 16px;
+    margin: 6px 0 16px 36px;
+    padding: 6px 0 0 16px;
 `;
 
 const SubTaskListOpen = styled.ul`
@@ -106,7 +109,7 @@ const SubTaskListDone = styled.ul`
     display: flex;
     flex-direction: column;
     gap: 16px;
-    margin-bottom: 8px;
+    margin-bottom: 16px;
 
     > li,
     > li > button {
@@ -117,4 +120,8 @@ const SubTaskListDone = styled.ul`
     input[type="checkbox"] {
         accent-color: gray;
     }
+`;
+
+const AddSubTaskButton = styled(ButtonSecondary)`
+    margin: 0 16px;
 `;

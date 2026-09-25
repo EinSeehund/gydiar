@@ -25,6 +25,14 @@ export default function SubTaskListItem({
         setShowUpdateForm(!showUpdateForm);
     }
 
+    function handleUpdateSubTask(
+        event: SubmitEvent<HTMLFormElement>,
+        subTaskId: number,
+    ) {
+        onUpdateSubTask(event, subTaskId);
+        setShowUpdateForm(false);
+    }
+
     return (
         <SubListItem>
             <input
@@ -47,7 +55,7 @@ export default function SubTaskListItem({
                     task={subTask}
                     parentTaskId={parentTaskId}
                     isEditing={true}
-                    onSubmit={(event) => onUpdateSubTask(event, subTask.id)}
+                    onSubmit={(event) => handleUpdateSubTask(event, subTask.id)}
                     onCancel={toggleUpdateForm}
                     onDelete={onDelete}
                 />
@@ -58,6 +66,9 @@ export default function SubTaskListItem({
 
 const SubListItem = styled.li`
     font-size: 1rem;
+    display: flex;
+    justify-content: flex-start;
+    align-items: baseline;
 
     > input {
         margin-right: 16px;

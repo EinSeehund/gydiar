@@ -92,7 +92,22 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     async function handleUpdateTask(
@@ -106,7 +121,7 @@ const Home: NextPage = ({}): JSX.Element => {
         if (typeof taskTitle !== "string" || !taskTitle.trim()) {
             return;
         }
-        
+
         const response = await fetch(`/api/tasks/${id}`, {
             method: "PUT",
             headers: {
@@ -119,8 +134,22 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
-        setShowTaskForm(false);
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     async function handleDeleteTask(id: number): Promise<void> {
@@ -135,8 +164,22 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
-        setShowTaskForm(false);
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     async function handleUpdateTaskStatus(
@@ -197,6 +240,7 @@ const Home: NextPage = ({}): JSX.Element => {
                         }
                         onCancel={closeTaskForm}
                         onDelete={handleDeleteTask}
+                        onCloseForm={closeTaskForm}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onSubmitSubTask={handleNewSubTask}
                         onUpdateSubTask={handleUpdateTask}
