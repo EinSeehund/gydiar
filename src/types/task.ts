@@ -4,4 +4,5 @@ export type Task = {
     created_at: string;
     updated_at: string;
     status: string;
+    parent_task_id: number | null;
 };

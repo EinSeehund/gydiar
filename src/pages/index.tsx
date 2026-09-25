@@ -7,10 +7,17 @@ import Modal from "../../components/Modal/Modal";
 import TaskForm from "../../components/TaskForm/TaskForm";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import { Task } from "@/types/task";
+import TaskList from "../../components/TaskList/TaskList";
+
+type TaskWithChildren = Task & {
+    children: Task[];
+};
 
 const Home: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
+        null,
+    );
 
     const { data, error, isLoading, mutate } = useTasks();
 
@@ -19,7 +26,7 @@ const Home: NextPage = ({}): JSX.Element => {
         setShowTaskForm(true);
     }
 
-    function openEditTaskForm(task: Task): void {
+    function openEditTaskForm(task: TaskWithChildren): void {
         setSelectedTask(task);
         setShowTaskForm(true);
     }
@@ -55,6 +62,54 @@ const Home: NextPage = ({}): JSX.Element => {
         setShowTaskForm(false);
     }
 
+    async function handleNewSubTask(
+        event: SubmitEvent<HTMLFormElement>,
+        parentTaskId: number,
+    ): Promise<void> {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const formObject = Object.fromEntries(formData.entries());
+        const taskTitle = formObject.taskTitle;
+
+        if (typeof taskTitle !== "string" || !taskTitle.trim()) {
+            return;
+        }
+
+        const payload = {
+            taskTitle,
+            parent_task_id: parentTaskId,
+        };
+
+        const response = await fetch("/api/tasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
+    }
+
     async function handleUpdateTask(
         event: SubmitEvent<HTMLFormElement>,
         id: number,
@@ -66,6 +121,7 @@ const Home: NextPage = ({}): JSX.Element => {
         if (typeof taskTitle !== "string" || !taskTitle.trim()) {
             return;
         }
+
         const response = await fetch(`/api/tasks/${id}`, {
             method: "PUT",
             headers: {
@@ -78,8 +134,22 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
-        setShowTaskForm(false);
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     async function handleDeleteTask(id: number): Promise<void> {
@@ -94,15 +164,29 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
-        setShowTaskForm(false);
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     async function handleUpdateTaskStatus(
         id: number,
         newStatus: "open" | "done",
     ): Promise<void> {
-        const response = await fetch(`api/tasks/${id}`, {
+        const response = await fetch(`/api/tasks/${id}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -114,15 +198,28 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Failed to load tasks.</p>;
 
     const tasksInDb = data?.tasks ?? [];
-    const activeTasks = tasksInDb.filter((task) => task.status === "open");
-    const doneTasks = tasksInDb.filter((task) => task.status === "done");
 
     return (
         <>
@@ -143,33 +240,24 @@ const Home: NextPage = ({}): JSX.Element => {
                         }
                         onCancel={closeTaskForm}
                         onDelete={handleDeleteTask}
+                        onCloseForm={closeTaskForm}
+                        onCheckboxChange={handleUpdateTaskStatus}
+                        onSubmitSubTask={handleNewSubTask}
+                        onUpdateSubTask={handleUpdateTask}
                         isEditing={selectedTask !== null}
                     />
                 </Modal>
             )}
             <main>
                 <Container>
-                    <TaskListActive>
-                        {activeTasks.map((task) => (
-                            <TaskListItem key={task.id}>
-                                <input
-                                    type="checkbox"
-                                    checked={task.status === "done"}
-                                    onChange={() =>
-                                        handleUpdateTaskStatus(task.id, "done")
-                                    }
-                                    aria-label={`Mark ${task.title} as done`}
-                                />
-                                <button
-                                    onClick={() => {
-                                        openEditTaskForm(task);
-                                    }}
-                                >
-                                    {task.title}
-                                </button>
-                            </TaskListItem>
-                        ))}
-                    </TaskListActive>
+                    <TaskList
+                        taskList={tasksInDb}
+                        onCheckboxChange={handleUpdateTaskStatus}
+                        onTitleClick={openEditTaskForm}
+                        onSubmitSubTask={handleNewSubTask}
+                        onDelete={handleDeleteTask}
+                        onUpdateSubTask={handleUpdateTask}
+                    />
                     <ButtonPrimary
                         text="Add Task"
                         type="button"
@@ -177,27 +265,6 @@ const Home: NextPage = ({}): JSX.Element => {
                             openNewTaskForm();
                         }}
                     />
-                    <TaskListDone>
-                        {doneTasks.map((task) => (
-                            <TaskListItem key={task.id}>
-                                <input
-                                    type="checkbox"
-                                    checked={task.status === "done"}
-                                    onChange={() =>
-                                        handleUpdateTaskStatus(task.id, "open")
-                                    }
-                                    aria-label={`Mark ${task.title} as open`}
-                                />
-                                <button
-                                    onClick={() => {
-                                        openEditTaskForm(task);
-                                    }}
-                                >
-                                    {task.title}
-                                </button>
-                            </TaskListItem>
-                        ))}
-                    </TaskListDone>
                 </Container>
             </main>
         </>
@@ -208,55 +275,4 @@ export default Home;
 
 const Container = styled.div`
     padding: 64px;
-`;
-
-const TaskListActive = styled.ul`
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-bottom: 32px;
-`;
-
-const TaskListDone = styled.ul`
-    list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    margin-top: 32px;
-    margin-bottom: 32px;
-    padding-top: 16px;
-    border-top: 2px dotted gray;
-
-    > li,
-    > li > button {
-        color: gray;
-        text-decoration: line-through;
-    }
-
-    input[type="checkbox"] {
-        accent-color: gray; /* Change to your preferred color */
-    }
-`;
-
-const TaskListItem = styled.li`
-    font-size: 1rem;
-
-    > input {
-        margin-right: 16px;
-
-        &:hover {
-            cursor: pointer;
-        }
-    }
-
-    > button {
-        background: none;
-        border: none;
-        font-size: 1rem;
-
-        &:hover {
-            cursor: pointer;
-        }
-    }
 `;
