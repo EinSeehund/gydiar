@@ -1,4 +1,5 @@
 import type { Task } from "@/types/task";
+import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
 import { useMemo } from "react";
@@ -10,15 +11,20 @@ type TaskWithChildren = Task & {
 type TaskListProps = {
     taskList: Task[];
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
-    onTitleClick: (task: Task) => void;
+    onTitleClick: (task: TaskWithChildren) => void;
+    onSubmitSubTask: (
+        event: SubmitEvent<HTMLFormElement>,
+        parentTaskId: number,
+    ) => void;
 };
 
 export default function TaskList({
     taskList,
     onCheckboxChange,
     onTitleClick,
+    onSubmitSubTask,
 }: TaskListProps) {
-    const taskTree = useMemo<TaskWithChildren[]>(() => {
+    const taskTree: TaskWithChildren[] = useMemo<TaskWithChildren[]>(() => {
         const childrenMap = new Map<number, Task[]>();
         const rootTasks: Task[] = [];
 
@@ -26,7 +32,8 @@ export default function TaskList({
             if (task.parent_task_id === null) {
                 rootTasks.push(task);
             } else {
-                const siblings = childrenMap.get(task.parent_task_id) ?? [];
+                const siblings: Task[] =
+                    childrenMap.get(task.parent_task_id) ?? [];
                 siblings.push(task);
                 childrenMap.set(task.parent_task_id, siblings);
             }
@@ -53,6 +60,7 @@ export default function TaskList({
                             task={task}
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
+                            onSubmitSubTask={onSubmitSubTask}
                         />
                     ))}
             </TaskListOpen>
@@ -71,6 +79,7 @@ export default function TaskList({
                                 task={task}
                                 onCheckboxChange={onCheckboxChange}
                                 onTitleClick={onTitleClick}
+                                onSubmitSubTask={onSubmitSubTask}
                             />
                         ))}
                 </TaskListDone>

@@ -9,9 +9,15 @@ import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import { Task } from "@/types/task";
 import TaskList from "../../components/TaskList/TaskList";
 
+type TaskWithChildren = Task & {
+    children: Task[];
+};
+
 const Home: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
-    const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+    const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
+        null,
+    );
 
     const { data, error, isLoading, mutate } = useTasks();
 
@@ -20,7 +26,7 @@ const Home: NextPage = ({}): JSX.Element => {
         setShowTaskForm(true);
     }
 
-    function openEditTaskForm(task: Task): void {
+    function openEditTaskForm(task: TaskWithChildren): void {
         setSelectedTask(task);
         setShowTaskForm(true);
     }
@@ -54,6 +60,38 @@ const Home: NextPage = ({}): JSX.Element => {
 
         await mutate();
         setShowTaskForm(false);
+    }
+
+    async function handleNewSubTask(
+        event: SubmitEvent<HTMLFormElement>,
+        parentTaskId: number,
+    ): Promise<void> {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        const formObject = Object.fromEntries(formData.entries());
+        const taskTitle = formObject.subTaskTitle;
+        if (typeof taskTitle !== "string" || !taskTitle.trim()) {
+            return;
+        }
+        
+        const payload = {
+            taskTitle,
+            parent_task_id: parentTaskId,
+        };
+
+        const response = await fetch("/api/tasks", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            return;
+        }
+
+        await mutate();
     }
 
     async function handleUpdateTask(
@@ -103,7 +141,7 @@ const Home: NextPage = ({}): JSX.Element => {
         id: number,
         newStatus: "open" | "done",
     ): Promise<void> {
-        const response = await fetch(`api/tasks/${id}`, {
+        const response = await fetch(`/api/tasks/${id}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -115,7 +153,22 @@ const Home: NextPage = ({}): JSX.Element => {
             return;
         }
 
-        await mutate();
+        const refreshedData = await mutate();
+
+        if (selectedTask && refreshedData) {
+            const updatedTask = refreshedData.tasks.find(
+                (task) => task.id === selectedTask.id,
+            );
+
+            if (updatedTask) {
+                setSelectedTask({
+                    ...updatedTask,
+                    children: refreshedData.tasks.filter(
+                        (task) => task.parent_task_id === updatedTask.id,
+                    ),
+                });
+            }
+        }
     }
 
     if (isLoading) return <p>Loading...</p>;
@@ -142,6 +195,8 @@ const Home: NextPage = ({}): JSX.Element => {
                         }
                         onCancel={closeTaskForm}
                         onDelete={handleDeleteTask}
+                        onCheckboxChange={handleUpdateTaskStatus}
+                        onSubmitSubTask={handleNewSubTask}
                         isEditing={selectedTask !== null}
                     />
                 </Modal>
@@ -152,6 +207,7 @@ const Home: NextPage = ({}): JSX.Element => {
                         taskList={tasksInDb}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
+                        onSubmitSubTask={handleNewSubTask}
                     />
                     <ButtonPrimary
                         text="Add Task"

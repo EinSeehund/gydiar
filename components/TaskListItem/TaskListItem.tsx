@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import type { Task } from "@/types/task";
+import { type SubmitEvent } from "react";
 import SubTaskList from "../SubTaskList/SubTaskList";
 
 type TaskWithChildren = Task & {
@@ -9,13 +10,18 @@ type TaskWithChildren = Task & {
 type TaskListItemProps = {
     task: TaskWithChildren;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
-    onTitleClick: (task: Task) => void;
+    onTitleClick: (task: TaskWithChildren) => void;
+    onSubmitSubTask: (
+        event: SubmitEvent<HTMLFormElement>,
+        parentTaskId: number,
+    ) => void;
 };
 
 export default function TaskListItem({
     task,
     onCheckboxChange,
     onTitleClick,
+    onSubmitSubTask,
 }: TaskListItemProps) {
     return (
         <ListItem>
@@ -44,7 +50,8 @@ export default function TaskListItem({
                     <SubTaskList
                         subTasks={task.children}
                         onCheckboxChange={onCheckboxChange}
-                        onTitleClick={onTitleClick}
+                        onSubmitSubTask={onSubmitSubTask}
+                        parentTaskId={task.id}
                     />
                 </StyledDetails>
             )}

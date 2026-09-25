@@ -4,13 +4,11 @@ import type { Task } from "@/types/task";
 type SubTaskListItemProps = {
     subTask: Task;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
-    onTitleClick: (task: Task) => void;
 };
 
 export default function SubTaskListItem({
     subTask,
     onCheckboxChange,
-    onTitleClick,
 }: SubTaskListItemProps) {
     return (
         <SubListItem>
@@ -28,7 +26,7 @@ export default function SubTaskListItem({
 
             <button
                 onClick={() => {
-                    onTitleClick(subTask);
+                    console.log("clicked!");
                 }}
             >
                 {subTask.title}
