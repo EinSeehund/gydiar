@@ -46,6 +46,7 @@ export default function Navigation() {
                         category={null}
                         onClose={closeCategoryForm}
                         onSubmit={handleNewCategory}
+                        onDelete={() => {}}
                     />
                 </Modal>
             )}

@@ -21,7 +21,7 @@ export function useCategories() {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formObject = Object.fromEntries(formData.entries());
-        
+
         const newCatName = formObject.name;
         if (typeof newCatName !== "string" || !newCatName.trim()) {
             return;
@@ -41,12 +41,12 @@ export function useCategories() {
 
     async function updateCategory(
         event: SubmitEvent<HTMLFormElement>,
-        id: number
+        id: number,
     ): Promise<void> {
         event.preventDefault();
         const formData = new FormData(event.currentTarget);
         const formObject = Object.fromEntries(formData.entries());
-        
+
         const newCatName = formObject.name;
         if (typeof newCatName !== "string" || !newCatName.trim()) {
             return;
@@ -64,5 +64,26 @@ export function useCategories() {
         }
     }
 
-    return { data, error, isLoading, mutate, addCategory, updateCategory };
+    async function deleteCategory(id: number): Promise<void> {
+        const response = await fetch(`/api/categories/${id}`, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            return;
+        }
+    }
+
+    return {
+        data,
+        error,
+        isLoading,
+        mutate,
+        addCategory,
+        updateCategory,
+        deleteCategory,
+    };
 }

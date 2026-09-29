@@ -47,6 +47,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         isLoading: CategoriesIsLoading,
         mutate: mutateCategories,
         updateCategory,
+        deleteCategory,
     } = useCategories();
 
     if (TasksIsLoading || CategoriesIsLoading) return <p>Loading...</p>;
@@ -62,7 +63,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         setSelectedTask(null);
         setShowTaskForm(true);
     }
-
+    
     function openEditTaskForm(task: TaskWithChildren): void {
         setSelectedTask(task);
         setShowTaskForm(true);
@@ -88,6 +89,11 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         await updateCategory(event, id);
         await mutateCategories();
         setShowCategoryForm(false);
+    }
+
+    async function handleDeleteCategory(id: number): Promise<void> {
+        await deleteCategory(id);
+        await router.push("/");
     }
 
     async function refreshUI(): Promise<void> {
@@ -181,6 +187,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                         onSubmit={(event) =>
                             handleUpdateCategory(event, currentCategory.id)
                         }
+                        onDelete={handleDeleteCategory}
                     />
                 </Modal>
             )}

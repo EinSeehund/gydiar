@@ -3,16 +3,19 @@ import { SubmitEvent } from "react";
 import type { Category } from "@/types/category";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
+import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
 
 type CategoryFormProps = {
     onClose: () => void;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
+    onDelete: (id: number) => void;
     category: Category | null;
 };
 
 export default function CategoryForm({
     onClose,
     onSubmit,
+    onDelete,
     category,
 }: CategoryFormProps) {
     return (
@@ -32,13 +35,25 @@ export default function CategoryForm({
                 />
             </InputContainer>
             <ButtonContainer>
-                <ButtonPrimary text={category ? "Update" : "Add"} type="submit" />
+                <ButtonPrimary
+                    text={category ? "Update" : "Add"}
+                    type="submit"
+                />
                 <ButtonSecondary
                     text="Cancel"
                     type="button"
                     onClick={onClose}
                 />
             </ButtonContainer>
+            {category && (
+                <ButtonTertiary
+                    type="button"
+                    text="Delete"
+                    onClick={() => {
+                        onDelete(category.id);
+                    }}
+                />
+            )}
         </StyledForm>
     );
 }
