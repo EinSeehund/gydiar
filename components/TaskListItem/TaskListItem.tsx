@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import type { Task } from "@/types/task";
+import type { Category } from "@/types/category";
 import { type SubmitEvent } from "react";
 import SubTaskList from "../SubTaskList/SubTaskList";
 
@@ -9,6 +10,8 @@ type TaskWithChildren = Task & {
 
 type TaskListItemProps = {
     task: TaskWithChildren;
+    category: Category | null;
+    categoryVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -21,33 +24,42 @@ type TaskListItemProps = {
 
 export default function TaskListItem({
     task,
+    category,
+    categoryVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
     onDelete,
-    onUpdateSubTask
+    onUpdateSubTask,
 }: TaskListItemProps) {
     return (
         <ListItem>
-            <input
-                type="checkbox"
-                checked={task.status === "done"}
-                onChange={() =>
-                    onCheckboxChange(
-                        task.id,
-                        task.status === "open" ? "done" : "open",
-                    )
-                }
-                aria-label={`Mark ${task.title} as done`}
-            />
+            <TitleWrapper>
+                <input
+                    type="checkbox"
+                    checked={task.status === "done"}
+                    onChange={() =>
+                        onCheckboxChange(
+                            task.id,
+                            task.status === "open" ? "done" : "open",
+                        )
+                    }
+                    aria-label={`Mark ${task.title} as done`}
+                />
 
-            <button
-                onClick={() => {
-                    onTitleClick(task);
-                }}
-            >
-                {task.title}
-            </button>
+                <button
+                    onClick={() => {
+                        onTitleClick(task);
+                    }}
+                >
+                    {task.title}
+                </button>
+                {category && categoryVisible && (
+                    <CategoryTag $color={category.color}>
+                        {category.name}
+                    </CategoryTag>
+                )}
+            </TitleWrapper>
             {task.children.length > 0 && (
                 <StyledDetails>
                     <StyledSummary>Subtasks</StyledSummary>
@@ -67,6 +79,11 @@ export default function TaskListItem({
 
 const ListItem = styled.li`
     font-size: 1rem;
+    max-width: 600px;
+`;
+
+const TitleWrapper = styled.div`
+    display: flex;
 
     > input {
         margin-right: 16px;
@@ -80,11 +97,23 @@ const ListItem = styled.li`
         background: none;
         border: none;
         font-size: 1rem;
+        text-align: left;
 
         &:hover {
             cursor: pointer;
         }
     }
+`;
+
+const CategoryTag = styled.span<{ $color: string }>`
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    padding-right: 4px;
+    padding-left: 16px;
+    font-size: small;
+    border-right: 5px solid ${({ $color }) => $color};
+    border-radius: 4px;
 `;
 
 const StyledDetails = styled.details`
@@ -93,5 +122,5 @@ const StyledDetails = styled.details`
 
 const StyledSummary = styled.summary`
     font-size: 0.9rem;
-    padding-left: 32px;
+    padding-left: 28px;
 `;

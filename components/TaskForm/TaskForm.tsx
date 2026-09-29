@@ -1,10 +1,11 @@
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
+import { Task } from "@/types/task";
+import { useCategories } from "@/lib/hooks/useCategories";
+import SubTaskList from "../SubTaskList/SubTaskList";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
-import { Task } from "@/types/task";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
-import SubTaskList from "../SubTaskList/SubTaskList";
 
 type TaskWithChildren = Task & {
     children: Task[];
@@ -12,6 +13,7 @@ type TaskWithChildren = Task & {
 
 type TaskFormProps = {
     task: TaskWithChildren | null;
+    defaultValues: { defaultCategory: number | "" };
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;
@@ -27,6 +29,7 @@ type TaskFormProps = {
 
 export default function TaskForm({
     task,
+    defaultValues,
     onSubmit,
     onCancel,
     onDelete,
@@ -36,6 +39,17 @@ export default function TaskForm({
     onSubmitSubTask,
     onUpdateSubTask,
 }: TaskFormProps) {
+    const {
+        data: CategoriesFetch,
+        error: CategoriesError,
+        isLoading: CategoriesIsLoading,
+    } = useCategories();
+
+    if (CategoriesIsLoading) return <p>Loading...</p>;
+    if (CategoriesError) return <p>Failed to load tasks.</p>;
+
+    const categoriesInDb = CategoriesFetch?.categories ?? [];
+
     function handleDelete(taskId: number) {
         if (task) {
             onDelete(taskId);
@@ -49,14 +63,36 @@ export default function TaskForm({
 
     return (
         <>
+            <Headline>{task ? "Edit Task" : "Add New Task"}</Headline>
             <StyledForm onSubmit={handleSubmit}>
-                <StyledInput
-                    type="text"
-                    name="taskTitle"
-                    autoFocus={!isEditing}
-                    defaultValue={task?.title}
-                    required
-                />
+                <FormItemWrapper>
+                    <label htmlFor="taskTitle">Title</label>
+                    <StyledInput
+                        id="taskTitle"
+                        type="text"
+                        name="taskTitle"
+                        autoFocus={!isEditing}
+                        defaultValue={task?.title}
+                        required
+                    />
+                </FormItemWrapper>
+                <FormItemWrapper>
+                    <label htmlFor="category-select">Category</label>
+                    <CategorySelect
+                        id="category-select"
+                        name="category_id"
+                        defaultValue={
+                            task?.category_id ?? defaultValues.defaultCategory
+                        }
+                    >
+                        <option value={""}>None</option>
+                        {categoriesInDb.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </CategorySelect>
+                </FormItemWrapper>
                 <ButtonContainer>
                     <ButtonPrimary
                         text={isEditing ? "Update" : "Create"}
@@ -96,7 +132,7 @@ const StyledForm = styled.form`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 32px;
 `;
 
 const ButtonContainer = styled.div`
@@ -106,6 +142,20 @@ const ButtonContainer = styled.div`
 
 const StyledInput = styled.input`
     width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #bdbdbd;
+    font-size: 1rem;
+`;
+
+const FormItemWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+const CategorySelect = styled.select`
     padding: 8px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;
@@ -114,4 +164,8 @@ const StyledInput = styled.input`
 
 const SubTaskListContainer = styled.div`
     transform: translate(-32px);
+`;
+
+const Headline = styled.h2`
+    margin-bottom: 16px;
 `;

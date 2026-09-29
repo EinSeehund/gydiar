@@ -28,6 +28,7 @@ const Overlay = styled.div`
 
 const Container = styled.section`
     width: 85%;
+    max-width: 400px;
     max-height: 85vh;
     overflow-y: auto;
     background-color: var(--background);

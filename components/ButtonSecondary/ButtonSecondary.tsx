@@ -12,9 +12,13 @@ export default function ButtonSecondary({
     text,
     type,
     onClick,
-    className
+    className,
 }: ButtonSecondaryProps): JSX.Element {
-    return <StyledButton className={className} type={type} onClick={onClick}>{text}</StyledButton>;
+    return (
+        <StyledButton className={className} type={type} onClick={onClick}>
+            {text}
+        </StyledButton>
+    );
 }
 
 const StyledButton = styled.button`
@@ -23,4 +27,5 @@ const StyledButton = styled.button`
     font-size: 1rem;
     margin: 8px 16px;
     border: none;
+    cursor: pointer;
 `;

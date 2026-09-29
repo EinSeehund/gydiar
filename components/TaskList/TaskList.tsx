@@ -1,4 +1,5 @@
 import type { Task } from "@/types/task";
+import type { Category } from "@/types/category";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
@@ -10,6 +11,8 @@ type TaskWithChildren = Task & {
 
 type TaskListProps = {
     taskList: Task[];
+    categories: Category[];
+    categoriesVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -22,11 +25,13 @@ type TaskListProps = {
 
 export default function TaskList({
     taskList,
+    categories,
+    categoriesVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
     onDelete,
-    onUpdateSubTask
+    onUpdateSubTask,
 }: TaskListProps) {
     const taskTree: TaskWithChildren[] = useMemo<TaskWithChildren[]>(() => {
         const childrenMap = new Map<number, Task[]>();
@@ -49,8 +54,26 @@ export default function TaskList({
         }));
     }, [taskList]);
 
+    function findCategory(taskObj: Task | TaskWithChildren) {
+        if (taskObj.category_id) {
+            const foundCategory = categories.find(
+                (category) => category.id === taskObj.category_id,
+            );
+            if (foundCategory) {
+                return foundCategory;
+            }
+        }
+        return null;
+    }
+
+    const hasNoTasks = taskList.length === 0;
+    const hasDoneTasks = taskList.some(
+        (task) => task.status === "done" && task.parent_task_id === null,
+    );
+
     return (
         <TaskListWrapper>
+            {hasNoTasks && <NoTasksText>There are no tasks in this list yet...</NoTasksText>}
             <TaskListOpen>
                 {taskTree
                     .filter(
@@ -62,6 +85,8 @@ export default function TaskList({
                         <TaskListItem
                             key={task.id}
                             task={task}
+                            category={findCategory(task)}
+                            categoryVisible={categoriesVisible}
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
                             onSubmitSubTask={onSubmitSubTask}
@@ -70,28 +95,32 @@ export default function TaskList({
                         />
                     ))}
             </TaskListOpen>
-            <StyledDetails>
-                <StyledSummary>Done Tasks</StyledSummary>
-                <TaskListDone>
-                    {taskTree
-                        .filter(
-                            (task) =>
-                                task.status === "done" &&
-                                task.parent_task_id === null,
-                        )
-                        .map((task) => (
-                            <TaskListItem
-                                key={task.id}
-                                task={task}
-                                onCheckboxChange={onCheckboxChange}
-                                onTitleClick={onTitleClick}
-                                onSubmitSubTask={onSubmitSubTask}
-                                onDelete={onDelete}
-                                onUpdateSubTask={onUpdateSubTask}
-                            />
-                        ))}
-                </TaskListDone>
-            </StyledDetails>
+            {hasDoneTasks && (
+                <StyledDetails>
+                    <StyledSummary>Done Tasks</StyledSummary>
+                    <TaskListDone>
+                        {taskTree
+                            .filter(
+                                (task) =>
+                                    task.status === "done" &&
+                                    task.parent_task_id === null,
+                            )
+                            .map((task) => (
+                                <TaskListItem
+                                    key={task.id}
+                                    task={task}
+                                    category={findCategory(task)}
+                                    categoryVisible={categoriesVisible}
+                                    onCheckboxChange={onCheckboxChange}
+                                    onTitleClick={onTitleClick}
+                                    onSubmitSubTask={onSubmitSubTask}
+                                    onDelete={onDelete}
+                                    onUpdateSubTask={onUpdateSubTask}
+                                />
+                            ))}
+                    </TaskListDone>
+                </StyledDetails>
+            )}
         </TaskListWrapper>
     );
 }
@@ -131,4 +160,9 @@ const StyledDetails = styled.details`
 
 const StyledSummary = styled.summary`
     font-size: 0.9rem;
+    padding-left: 28px;
+`;
+
+const NoTasksText = styled.p`
+    padding-left: 28px;
 `;

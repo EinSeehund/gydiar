@@ -9,6 +9,11 @@ export default function Header() {
 }
 
 const HeaderContainer = styled.header`
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 10;
+    width: 100%;
     display: flex;
     justify-content: center;
     background-color: var(--foreground);

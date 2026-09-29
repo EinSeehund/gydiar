@@ -47,3 +47,12 @@ a {
     color-scheme: dark;
   }
 }
+
+main {
+  padding-top: 66px;
+  padding-left: 280px;
+
+  @media screen and (max-width: 600px) {
+    padding-left: 0;
+  }
+}

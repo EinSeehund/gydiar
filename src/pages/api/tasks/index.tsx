@@ -6,8 +6,37 @@ export default async function handler(
     res: NextApiResponse,
 ) {
     if (req.method === "GET") {
+        const { category } = req.query;
+
+        if (Array.isArray(category)) {
+            return res.status(400).json({ error: "Invalid query parameter" });
+        }
+
         try {
-            const result = await pool.query("SELECT * FROM tasks ORDER BY id");
+            let result;
+            if (category) {
+                result = await pool.query(
+                    `WITH category_tasks AS (
+                        SELECT t.*
+                        FROM tasks t
+                        JOIN categories c ON c.id = t.category_id
+                        WHERE c.slug = $1
+                    ),
+                    visible_tasks AS (
+                        SELECT * FROM category_tasks
+                        UNION
+                        SELECT child.*
+                        FROM tasks child
+                        JOIN category_tasks parent
+                            ON child.parent_task_id = parent.id
+                    )
+                    SELECT * FROM visible_tasks
+                    ORDER BY id DESC`,
+                    [category],
+                );
+            } else {
+                result = await pool.query("SELECT * FROM tasks ORDER BY id");
+            }
             res.status(200).json({ success: true, tasks: result.rows });
         } catch (error) {
             console.error("DB connection error:", error);
@@ -17,10 +46,14 @@ export default async function handler(
         try {
             await pool.query(
                 `
-                INSERT INTO "public"."tasks" ("title", "parent_task_id")
-                VALUES ($1, $2)
+                INSERT INTO "public"."tasks" ("title", "parent_task_id", "category_id")
+                VALUES ($1, $2, $3)
             `,
-                [req.body.taskTitle, req.body.parent_task_id],
+                [
+                    req.body.taskTitle,
+                    req.body.parent_task_id,
+                    req.body.category_id,
+                ],
             );
             res.status(200).json({
                 success: true,
