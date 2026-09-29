@@ -11,7 +11,7 @@ import { SubmitEvent } from "react";
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
 
-    const { data, isLoading, error, mutate } = useCategories();
+    const { data, isLoading, error, mutate, addCategory } = useCategories();
     const { asPath } = useRouter();
 
     if (isLoading) return <p>Loading...</p>;
@@ -33,26 +33,7 @@ export default function Navigation() {
     async function handleNewCategory(
         event: SubmitEvent<HTMLFormElement>,
     ): Promise<void> {
-        event.preventDefault();
-        const formData = new FormData(event.currentTarget);
-        const formObject = Object.fromEntries(formData.entries());
-        console.log(formObject);
-        const newCatName = formObject.name;
-        if (typeof newCatName !== "string" || !newCatName.trim()) {
-            return;
-        }
-        const response = await fetch("/api/categories", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(formObject),
-        });
-
-        if (!response.ok) {
-            return;
-        }
-
+        await addCategory(event);
         await mutate();
         setShowCategoryForm(false);
     }
@@ -62,6 +43,7 @@ export default function Navigation() {
             {showCategoryForm && (
                 <Modal>
                     <CategoryForm
+                        category={null}
                         onClose={closeCategoryForm}
                         onSubmit={handleNewCategory}
                     />

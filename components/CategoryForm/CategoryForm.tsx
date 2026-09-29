@@ -1,27 +1,38 @@
 import styled from "styled-components";
+import { SubmitEvent } from "react";
+import type { Category } from "@/types/category";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
-import { SubmitEvent } from "react";
 
 type CategoryFormProps = {
     onClose: () => void;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
+    category: Category | null;
 };
 
-export default function CategoryForm({ onClose, onSubmit }: CategoryFormProps) {
+export default function CategoryForm({
+    onClose,
+    onSubmit,
+    category,
+}: CategoryFormProps) {
     return (
         <StyledForm onSubmit={onSubmit}>
             <InputContainer>
-                <StyledColorInput type="color" name="color" />
+                <StyledColorInput
+                    type="color"
+                    name="color"
+                    defaultValue={category?.color}
+                />
                 <StyledInput
                     type="text"
                     name="name"
                     required={true}
-                    autoFocus={true}
+                    autoFocus={!category}
+                    defaultValue={category?.name}
                 />
             </InputContainer>
             <ButtonContainer>
-                <ButtonPrimary text="Add" type="submit" />
+                <ButtonPrimary text={category ? "Update" : "Add"} type="submit" />
                 <ButtonSecondary
                     text="Cancel"
                     type="button"

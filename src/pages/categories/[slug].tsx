@@ -12,6 +12,7 @@ import ButtonPrimary from "../../../components/ButtonPrimary/ButtonPrimary";
 import TaskList from "../../../components/TaskList/TaskList";
 import TaskForm from "../../../components/TaskForm/TaskForm";
 import Modal from "../../../components/Modal/Modal";
+import CategoryForm from "../../../components/CategoryForm/CategoryForm";
 
 type TaskWithChildren = Task & {
     children: Task[];
@@ -19,6 +20,7 @@ type TaskWithChildren = Task & {
 
 const CategoryPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
+    const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
     const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
         null,
     );
@@ -43,6 +45,8 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         data: CategoriesFetch,
         error: CategoriesError,
         isLoading: CategoriesIsLoading,
+        mutate: mutateCategories,
+        updateCategory,
     } = useCategories();
 
     if (TasksIsLoading || CategoriesIsLoading) return <p>Loading...</p>;
@@ -67,6 +71,23 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
     function closeTaskForm(): void {
         setSelectedTask(null);
         setShowTaskForm(false);
+    }
+
+    function openCategoryForm(): void {
+        setShowCategoryForm(true);
+    }
+
+    function closeCategoryForm(): void {
+        setShowCategoryForm(false);
+    }
+
+    async function handleUpdateCategory(
+        event: SubmitEvent<HTMLFormElement>,
+        id: number,
+    ): Promise<void> {
+        await updateCategory(event, id);
+        await mutateCategories();
+        setShowCategoryForm(false);
     }
 
     async function refreshUI(): Promise<void> {
@@ -152,11 +173,23 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                     />
                 </Modal>
             )}
+            {showCategoryForm && (
+                <Modal>
+                    <CategoryForm
+                        category={currentCategory}
+                        onClose={closeCategoryForm}
+                        onSubmit={(event) =>
+                            handleUpdateCategory(event, currentCategory.id)
+                        }
+                    />
+                </Modal>
+            )}
             <main>
                 <Container>
                     <CategoryTitle $color={currentCategory.color}>
                         {currentCategory.name}
                     </CategoryTitle>
+                    <button onClick={openCategoryForm}>Edit Category</button>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
