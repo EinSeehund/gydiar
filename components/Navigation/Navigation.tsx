@@ -98,6 +98,7 @@ const NavContainer = styled.div`
     left: 0;
     width: 250px;
     padding: 40px;
+    padding-top: 106px;
     background-color: var(--background);
     border-right: 1px solid gray;
 

@@ -1,10 +1,11 @@
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
+import { Task } from "@/types/task";
+import { useCategories } from "@/lib/hooks/useCategories";
+import SubTaskList from "../SubTaskList/SubTaskList";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
-import { Task } from "@/types/task";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
-import SubTaskList from "../SubTaskList/SubTaskList";
 
 type TaskWithChildren = Task & {
     children: Task[];
@@ -36,6 +37,17 @@ export default function TaskForm({
     onSubmitSubTask,
     onUpdateSubTask,
 }: TaskFormProps) {
+    const {
+        data: CategoriesFetch,
+        error: CategoriesError,
+        isLoading: CategoriesIsLoading,
+    } = useCategories();
+
+    if (CategoriesIsLoading) return <p>Loading...</p>;
+    if (CategoriesError) return <p>Failed to load tasks.</p>;
+
+    const categoriesInDb = CategoriesFetch?.categories ?? [];
+
     function handleDelete(taskId: number) {
         if (task) {
             onDelete(taskId);
@@ -57,6 +69,19 @@ export default function TaskForm({
                     defaultValue={task?.title}
                     required
                 />
+                <label htmlFor="category-select">Category: </label>
+                <CategorySelect
+                    id="category-select"
+                    name="category_id"
+                    defaultValue={task?.category_id ?? ""}
+                >
+                    <option value={""}>None</option>
+                    {categoriesInDb.map((category) => (
+                        <StyledOption key={category.id} value={category.id}>
+                            {category.name}
+                        </StyledOption>
+                    ))}
+                </CategorySelect>
                 <ButtonContainer>
                     <ButtonPrimary
                         text={isEditing ? "Update" : "Create"}
@@ -114,4 +139,10 @@ const StyledInput = styled.input`
 
 const SubTaskListContainer = styled.div`
     transform: translate(-32px);
+`;
+
+const CategorySelect = styled.select``;
+
+const StyledOption = styled.option`
+    border-left: 5px solid red;
 `;

@@ -23,9 +23,9 @@ export default async function handler(
             const result = await pool.query(
                 `
                 UPDATE "public"."tasks"
-                SET "title" = $1
-                WHERE "id" = $2`,
-                [title, id],
+                SET "title" = $1, "category_id" = $2
+                WHERE "id" = $3`,
+                [title, req.body.category_id, id],
             );
 
             if (result.rowCount === 0) {

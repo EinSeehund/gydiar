@@ -34,10 +34,14 @@ export default async function handler(
         try {
             await pool.query(
                 `
-                INSERT INTO "public"."tasks" ("title", "parent_task_id")
-                VALUES ($1, $2)
+                INSERT INTO "public"."tasks" ("title", "parent_task_id", "category_id")
+                VALUES ($1, $2, $3)
             `,
-                [req.body.taskTitle, req.body.parent_task_id],
+                [
+                    req.body.taskTitle,
+                    req.body.parent_task_id,
+                    req.body.category_id,
+                ],
             );
             res.status(200).json({
                 success: true,

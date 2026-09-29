@@ -36,12 +36,19 @@ export function useTasks(filter?: TaskFilter) {
         if (typeof taskTitle !== "string" || !taskTitle.trim()) {
             return;
         }
+
+        const payload = {
+            ...formObject,
+            category_id:
+                formObject.category_id === "" ? null : formObject.category_id,
+        };
+
         const response = await fetch("/api/tasks", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(formObject),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -90,12 +97,18 @@ export function useTasks(filter?: TaskFilter) {
             return;
         }
 
+        const payload = {
+            ...formObject,
+            category_id:
+                formObject.category_id === "" ? null : formObject.category_id,
+        };
+
         const response = await fetch(`/api/tasks/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(formObject),
+            body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
