@@ -8,9 +8,12 @@ export default async function handler(
     if (req.method === "GET") {
         const { category } = req.query;
 
-        let result;
+        if (Array.isArray(category)) {
+            return res.status(400).json({ error: "Ungültige Query-Parameter" });
+        }
 
         try {
+            let result;
             if (category) {
                 result = await pool.query(
                     `SELECT t.* FROM tasks t

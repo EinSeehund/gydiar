@@ -25,6 +25,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
 
     const router = useRouter();
     const { slug } = router.query;
+    const categorySlug = typeof slug === "string" ? slug : undefined;
 
     const {
         data: TasksFetch,
@@ -36,7 +37,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         updateTask,
         deleteTask,
         updateTaskStatus,
-    } = useTasks({ category: slug });
+    } = useTasks({ category: categorySlug });
 
     const {
         data: CategoriesFetch,
@@ -50,7 +51,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
     const currentCategory = CategoriesFetch?.categories.find(
-        (category) => category.slug === slug,
+        (category) => category.slug === categorySlug,
     ) ?? { id: 0, name: "Not found...", slug: "not-found", color: "#ffffff" };
 
     function openNewTaskForm(): void {
