@@ -19,42 +19,47 @@ export default function CategoryForm({
     category,
 }: CategoryFormProps) {
     return (
-        <StyledForm onSubmit={onSubmit}>
-            <InputContainer>
-                <StyledColorInput
-                    type="color"
-                    name="color"
-                    defaultValue={category?.color}
-                />
-                <StyledInput
-                    type="text"
-                    name="name"
-                    required={true}
-                    autoFocus={!category}
-                    defaultValue={category?.name}
-                />
-            </InputContainer>
-            <ButtonContainer>
-                <ButtonPrimary
-                    text={category ? "Update" : "Add"}
-                    type="submit"
-                />
-                <ButtonSecondary
-                    text="Cancel"
-                    type="button"
-                    onClick={onClose}
-                />
-            </ButtonContainer>
-            {category && (
-                <ButtonTertiary
-                    type="button"
-                    text="Delete"
-                    onClick={() => {
-                        onDelete(category.id);
-                    }}
-                />
-            )}
-        </StyledForm>
+        <>
+            <Headline>
+                {category ? "Edit Category" : "Add New Category"}
+            </Headline>
+            <StyledForm onSubmit={onSubmit}>
+                <InputContainer>
+                    <StyledColorInput
+                        type="color"
+                        name="color"
+                        defaultValue={category?.color}
+                    />
+                    <StyledInput
+                        type="text"
+                        name="name"
+                        required={true}
+                        autoFocus={!category}
+                        defaultValue={category?.name}
+                    />
+                </InputContainer>
+                <ButtonContainer>
+                    <ButtonPrimary
+                        text={category ? "Update" : "Add"}
+                        type="submit"
+                    />
+                    <ButtonSecondary
+                        text="Cancel"
+                        type="button"
+                        onClick={onClose}
+                    />
+                </ButtonContainer>
+                {category && (
+                    <ButtonTertiary
+                        type="button"
+                        text="Delete"
+                        onClick={() => {
+                            onDelete(category.id);
+                        }}
+                    />
+                )}
+            </StyledForm>
+        </>
     );
 }
 
@@ -67,7 +72,7 @@ const StyledForm = styled.form`
 
 const StyledInput = styled.input`
     width: 90%;
-    padding: 4px;
+    padding: 8px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;
     margin-bottom: 8px;
@@ -75,8 +80,8 @@ const StyledInput = styled.input`
 `;
 
 const StyledColorInput = styled.input`
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;
     padding: 2px;
@@ -91,4 +96,8 @@ const InputContainer = styled.div`
 const ButtonContainer = styled.div`
     display: flex;
     gap: 16px;
+`;
+
+const Headline = styled.h2`
+    margin-bottom: 16px;
 `;

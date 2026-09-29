@@ -92,7 +92,7 @@ export default function SubTaskList({
 
 const SubTaskListWrapper = styled.section`
     border-left: 1px dashed gray;
-    margin: 6px 0 16px 36px;
+    margin: 6px 0 16px 32px;
     padding: 6px 0 0 16px;
 `;
 

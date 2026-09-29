@@ -12,6 +12,7 @@ type TaskWithChildren = Task & {
 type TaskListProps = {
     taskList: Task[];
     categories: Category[];
+    categoriesVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -25,6 +26,7 @@ type TaskListProps = {
 export default function TaskList({
     taskList,
     categories,
+    categoriesVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
@@ -64,8 +66,14 @@ export default function TaskList({
         return null;
     }
 
+    const hasNoTasks = taskList.length === 0;
+    const hasDoneTasks = taskList.some(
+        (task) => task.status === "done" && task.parent_task_id === null,
+    );
+
     return (
         <TaskListWrapper>
+            {hasNoTasks && <NoTasksText>There are no tasks in this list yet...</NoTasksText>}
             <TaskListOpen>
                 {taskTree
                     .filter(
@@ -78,6 +86,7 @@ export default function TaskList({
                             key={task.id}
                             task={task}
                             category={findCategory(task)}
+                            categoryVisible={categoriesVisible}
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
                             onSubmitSubTask={onSubmitSubTask}
@@ -86,29 +95,32 @@ export default function TaskList({
                         />
                     ))}
             </TaskListOpen>
-            <StyledDetails>
-                <StyledSummary>Done Tasks</StyledSummary>
-                <TaskListDone>
-                    {taskTree
-                        .filter(
-                            (task) =>
-                                task.status === "done" &&
-                                task.parent_task_id === null,
-                        )
-                        .map((task) => (
-                            <TaskListItem
-                                key={task.id}
-                                task={task}
-                                category={findCategory(task)}
-                                onCheckboxChange={onCheckboxChange}
-                                onTitleClick={onTitleClick}
-                                onSubmitSubTask={onSubmitSubTask}
-                                onDelete={onDelete}
-                                onUpdateSubTask={onUpdateSubTask}
-                            />
-                        ))}
-                </TaskListDone>
-            </StyledDetails>
+            {hasDoneTasks && (
+                <StyledDetails>
+                    <StyledSummary>Done Tasks</StyledSummary>
+                    <TaskListDone>
+                        {taskTree
+                            .filter(
+                                (task) =>
+                                    task.status === "done" &&
+                                    task.parent_task_id === null,
+                            )
+                            .map((task) => (
+                                <TaskListItem
+                                    key={task.id}
+                                    task={task}
+                                    category={findCategory(task)}
+                                    categoryVisible={categoriesVisible}
+                                    onCheckboxChange={onCheckboxChange}
+                                    onTitleClick={onTitleClick}
+                                    onSubmitSubTask={onSubmitSubTask}
+                                    onDelete={onDelete}
+                                    onUpdateSubTask={onUpdateSubTask}
+                                />
+                            ))}
+                    </TaskListDone>
+                </StyledDetails>
+            )}
         </TaskListWrapper>
     );
 }
@@ -148,4 +160,9 @@ const StyledDetails = styled.details`
 
 const StyledSummary = styled.summary`
     font-size: 0.9rem;
+    padding-left: 28px;
+`;
+
+const NoTasksText = styled.p`
+    padding-left: 28px;
 `;

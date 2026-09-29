@@ -21,7 +21,6 @@ export default function Navigation() {
 
     const linkStyle = (href: string) => ({
         fontWeight: asPath === href ? "bold" : "normal",
-        textDecoration: asPath === href ? "underline" : "none",
     });
 
     function openCategoryForm() {
@@ -52,7 +51,11 @@ export default function Navigation() {
             )}
             <NavContainer>
                 <NavBar>
-                    <Link href="/" style={linkStyle("/")}>
+                    <Link
+                        href="/"
+                        style={linkStyle("/")}
+                        aria-current={asPath === "/" ? "page" : undefined}
+                    >
                         All Tasks
                     </Link>
                     <hr />
@@ -61,7 +64,13 @@ export default function Navigation() {
                         <CategoryLink
                             key={category.id}
                             href={`/categories/${category.slug}`}
+                            style={linkStyle(`/categories/${category.slug}`)}
                             $color={category.color}
+                            aria-current={
+                                asPath === `/categories/${category.slug}`
+                                    ? "page"
+                                    : undefined
+                            }
                         >
                             {category.name}
                         </CategoryLink>
@@ -94,6 +103,11 @@ const NavBar = styled.nav`
     display: flex;
     flex-direction: column;
     gap: 16px;
+
+    & a[aria-current="page"]::after {
+        content: "→";
+        margin-left: 8px;
+    }
 `;
 
 const CategoryLink = styled(Link)<{ $color: string }>`

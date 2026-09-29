@@ -11,6 +11,7 @@ type TaskWithChildren = Task & {
 type TaskListItemProps = {
     task: TaskWithChildren;
     category: Category | null;
+    categoryVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -24,6 +25,7 @@ type TaskListItemProps = {
 export default function TaskListItem({
     task,
     category,
+    categoryVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
@@ -52,7 +54,7 @@ export default function TaskListItem({
                 >
                     {task.title}
                 </button>
-                {category && (
+                {category && categoryVisible && (
                     <CategoryTag $color={category.color}>
                         {category.name}
                     </CategoryTag>
@@ -120,5 +122,5 @@ const StyledDetails = styled.details`
 
 const StyledSummary = styled.summary`
     font-size: 0.9rem;
-    padding-left: 32px;
+    padding-left: 28px;
 `;

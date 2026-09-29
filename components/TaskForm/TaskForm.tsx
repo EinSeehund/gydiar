@@ -13,6 +13,7 @@ type TaskWithChildren = Task & {
 
 type TaskFormProps = {
     task: TaskWithChildren | null;
+    defaultValues: { defaultCategory: number | "" };
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;
@@ -28,6 +29,7 @@ type TaskFormProps = {
 
 export default function TaskForm({
     task,
+    defaultValues,
     onSubmit,
     onCancel,
     onDelete,
@@ -61,27 +63,36 @@ export default function TaskForm({
 
     return (
         <>
+            <Headline>{task ? "Edit Task" : "Add New Task"}</Headline>
             <StyledForm onSubmit={handleSubmit}>
-                <StyledInput
-                    type="text"
-                    name="taskTitle"
-                    autoFocus={!isEditing}
-                    defaultValue={task?.title}
-                    required
-                />
-                <label htmlFor="category-select">Category: </label>
-                <CategorySelect
-                    id="category-select"
-                    name="category_id"
-                    defaultValue={task?.category_id ?? ""}
-                >
-                    <option value={""}>None</option>
-                    {categoriesInDb.map((category) => (
-                        <StyledOption key={category.id} value={category.id}>
-                            {category.name}
-                        </StyledOption>
-                    ))}
-                </CategorySelect>
+                <FormItemWrapper>
+                    <label htmlFor="taskTitle">Title</label>
+                    <StyledInput
+                        id="taskTitle"
+                        type="text"
+                        name="taskTitle"
+                        autoFocus={!isEditing}
+                        defaultValue={task?.title}
+                        required
+                    />
+                </FormItemWrapper>
+                <FormItemWrapper>
+                    <label htmlFor="category-select">Category</label>
+                    <CategorySelect
+                        id="category-select"
+                        name="category_id"
+                        defaultValue={
+                            task?.category_id ?? defaultValues.defaultCategory
+                        }
+                    >
+                        <option value={""}>None</option>
+                        {categoriesInDb.map((category) => (
+                            <option key={category.id} value={category.id}>
+                                {category.name}
+                            </option>
+                        ))}
+                    </CategorySelect>
+                </FormItemWrapper>
                 <ButtonContainer>
                     <ButtonPrimary
                         text={isEditing ? "Update" : "Create"}
@@ -121,7 +132,7 @@ const StyledForm = styled.form`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 16px;
+    gap: 32px;
 `;
 
 const ButtonContainer = styled.div`
@@ -131,6 +142,20 @@ const ButtonContainer = styled.div`
 
 const StyledInput = styled.input`
     width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #bdbdbd;
+    font-size: 1rem;
+`;
+
+const FormItemWrapper = styled.div`
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+`;
+
+const CategorySelect = styled.select`
     padding: 8px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;
@@ -141,8 +166,6 @@ const SubTaskListContainer = styled.div`
     transform: translate(-32px);
 `;
 
-const CategorySelect = styled.select``;
-
-const StyledOption = styled.option`
-    border-left: 5px solid red;
+const Headline = styled.h2`
+    margin-bottom: 16px;
 `;

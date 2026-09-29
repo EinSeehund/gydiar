@@ -126,6 +126,7 @@ const Home: NextPage = ({}): JSX.Element => {
                 <Modal>
                     <TaskForm
                         task={selectedTask}
+                        defaultValues={{ defaultCategory: "" }}
                         onSubmit={
                             selectedTask
                                 ? (event) =>
@@ -147,19 +148,22 @@ const Home: NextPage = ({}): JSX.Element => {
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
+                        categoriesVisible={true}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}
                         onDelete={handleDeleteTask}
                         onUpdateSubTask={handleUpdateTask}
                     />
-                    <ButtonPrimary
-                        text="Add Task"
-                        type="button"
-                        onClick={() => {
-                            openNewTaskForm();
-                        }}
-                    />
+                    <ButtonWrapper>
+                        <ButtonPrimary
+                            text="Add Task"
+                            type="button"
+                            onClick={() => {
+                                openNewTaskForm();
+                            }}
+                        />
+                    </ButtonWrapper>
                 </Container>
             </main>
         </>
@@ -170,4 +174,8 @@ export default Home;
 
 const Container = styled.div`
     padding: 64px;
+`;
+
+const ButtonWrapper = styled.p`
+    padding-left: 28px;
 `;

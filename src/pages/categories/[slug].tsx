@@ -63,7 +63,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         setSelectedTask(null);
         setShowTaskForm(true);
     }
-    
+
     function openEditTaskForm(task: TaskWithChildren): void {
         setSelectedTask(task);
         setShowTaskForm(true);
@@ -163,6 +163,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                 <Modal>
                     <TaskForm
                         task={selectedTask}
+                        defaultValues={{ defaultCategory: currentCategory.id }}
                         onSubmit={
                             selectedTask
                                 ? (event) =>
@@ -193,26 +194,33 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
             )}
             <main>
                 <Container>
-                    <CategoryTitle $color={currentCategory.color}>
-                        {currentCategory.name}
-                    </CategoryTitle>
-                    <button onClick={openCategoryForm}>Edit Category</button>
+                    <CategoryTitleContainer>
+                        <CategoryTitle $color={currentCategory.color}>
+                            {currentCategory.name}
+                        </CategoryTitle>
+                        <CategoryEditButton onClick={openCategoryForm}>
+                            Edit Category
+                        </CategoryEditButton>
+                    </CategoryTitleContainer>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
+                        categoriesVisible={false}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}
-                        onDelete={handleDeleteTask}
                         onUpdateSubTask={handleUpdateTask}
+                        onDelete={handleDeleteTask}
                     />
-                    <ButtonPrimary
-                        text="Add Task"
-                        type="button"
-                        onClick={() => {
-                            openNewTaskForm();
-                        }}
-                    />
+                    <ButtonWrapper>
+                        <ButtonPrimary
+                            text="Add Task"
+                            type="button"
+                            onClick={() => {
+                                openNewTaskForm();
+                            }}
+                        />
+                    </ButtonWrapper>
                 </Container>
             </main>
         </>
@@ -225,9 +233,28 @@ const Container = styled.div`
     padding: 64px;
 `;
 
+const CategoryTitleContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 32px;
+`;
+
 const CategoryTitle = styled.h2<{ $color: string }>`
     border-left: 8px solid ${({ $color }) => $color};
     border-radius: 6px;
     padding-left: 20px;
-    margin-bottom: 32px;
+`;
+
+const CategoryEditButton = styled.button`
+    border: none;
+    background: none;
+    font-size: small;
+    margin-top: 8px;
+    margin-left: 29px;
+    cursor: pointer;
+`;
+
+const ButtonWrapper = styled.p`
+    padding-left: 28px;
 `;
