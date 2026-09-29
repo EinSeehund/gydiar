@@ -30,4 +30,5 @@ const StyledButton = styled.button`
     border: none;
     align-self: flex-end;
     border-radius: 8px;
+    cursor: pointer;
 `;

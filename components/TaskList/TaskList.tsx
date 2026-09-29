@@ -1,4 +1,5 @@
 import type { Task } from "@/types/task";
+import type { Category } from "@/types/category";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
@@ -10,6 +11,7 @@ type TaskWithChildren = Task & {
 
 type TaskListProps = {
     taskList: Task[];
+    categories: Category[];
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -22,11 +24,12 @@ type TaskListProps = {
 
 export default function TaskList({
     taskList,
+    categories,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
     onDelete,
-    onUpdateSubTask
+    onUpdateSubTask,
 }: TaskListProps) {
     const taskTree: TaskWithChildren[] = useMemo<TaskWithChildren[]>(() => {
         const childrenMap = new Map<number, Task[]>();
@@ -49,6 +52,18 @@ export default function TaskList({
         }));
     }, [taskList]);
 
+    function findCategory(taskObj: Task | TaskWithChildren) {
+        if (taskObj.category_id) {
+            const foundCategory = categories.find(
+                (category) => category.id === taskObj.category_id,
+            );
+            if (foundCategory) {
+                return foundCategory;
+            }
+        }
+        return null;
+    }
+
     return (
         <TaskListWrapper>
             <TaskListOpen>
@@ -62,6 +77,7 @@ export default function TaskList({
                         <TaskListItem
                             key={task.id}
                             task={task}
+                            category={findCategory(task)}
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
                             onSubmitSubTask={onSubmitSubTask}
@@ -83,6 +99,7 @@ export default function TaskList({
                             <TaskListItem
                                 key={task.id}
                                 task={task}
+                                category={findCategory(task)}
                                 onCheckboxChange={onCheckboxChange}
                                 onTitleClick={onTitleClick}
                                 onSubmitSubTask={onSubmitSubTask}

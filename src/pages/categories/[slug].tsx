@@ -1,24 +1,30 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useRouter } from "next/router";
+
 import { useState, type JSX, type SubmitEvent } from "react";
-import styled from "styled-components";
+
 import { Task } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
-import Modal from "../../components/Modal/Modal";
-import TaskList from "../../components/TaskList/TaskList";
-import TaskForm from "../../components/TaskForm/TaskForm";
-import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
+import styled from "styled-components";
+import ButtonPrimary from "../../../components/ButtonPrimary/ButtonPrimary";
+import TaskList from "../../../components/TaskList/TaskList";
+import TaskForm from "../../../components/TaskForm/TaskForm";
+import Modal from "../../../components/Modal/Modal";
 
 type TaskWithChildren = Task & {
     children: Task[];
 };
 
-const Home: NextPage = ({}): JSX.Element => {
+const CategoryPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
     const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
         null,
     );
+
+    const router = useRouter();
+    const { slug } = router.query;
 
     const {
         data: TasksFetch,
@@ -30,7 +36,7 @@ const Home: NextPage = ({}): JSX.Element => {
         updateTask,
         deleteTask,
         updateTaskStatus,
-    } = useTasks();
+    } = useTasks({ category: slug });
 
     const {
         data: CategoriesFetch,
@@ -43,6 +49,9 @@ const Home: NextPage = ({}): JSX.Element => {
 
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
+    const currentCategory = CategoriesFetch?.categories.find(
+        (category) => category.slug === slug,
+    ) ?? { id: 0, name: "Not found...", slug: "not-found", color: "#ffffff" };
 
     function openNewTaskForm(): void {
         setSelectedTask(null);
@@ -144,6 +153,9 @@ const Home: NextPage = ({}): JSX.Element => {
             )}
             <main>
                 <Container>
+                    <CategoryTitle $color={currentCategory.color}>
+                        {currentCategory.name}
+                    </CategoryTitle>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
@@ -166,8 +178,15 @@ const Home: NextPage = ({}): JSX.Element => {
     );
 };
 
-export default Home;
+export default CategoryPage;
 
 const Container = styled.div`
     padding: 64px;
+`;
+
+const CategoryTitle = styled.h2<{ $color: string }>`
+    border-left: 8px solid ${({ $color }) => $color};
+    border-radius: 6px;
+    padding-left: 20px;
+    margin-bottom: 32px;
 `;
