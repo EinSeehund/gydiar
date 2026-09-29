@@ -9,17 +9,29 @@ export default async function handler(
         const { category } = req.query;
 
         if (Array.isArray(category)) {
-            return res.status(400).json({ error: "Ungültige Query-Parameter" });
+            return res.status(400).json({ error: "Invalid query parameter" });
         }
 
         try {
             let result;
             if (category) {
                 result = await pool.query(
-                    `SELECT t.* FROM tasks t
-                    JOIN categories c ON c.id = t.category_id
-                    WHERE c.slug = $1
-                    ORDER BY t.id DESC`,
+                    `WITH category_tasks AS (
+                        SELECT t.*
+                        FROM tasks t
+                        JOIN categories c ON c.id = t.category_id
+                        WHERE c.slug = $1
+                    ),
+                    visible_tasks AS (
+                        SELECT * FROM category_tasks
+                        UNION
+                        SELECT child.*
+                        FROM tasks child
+                        JOIN category_tasks parent
+                            ON child.parent_task_id = parent.id
+                    )
+                    SELECT * FROM visible_tasks
+                    ORDER BY id DESC`,
                     [category],
                 );
             } else {
