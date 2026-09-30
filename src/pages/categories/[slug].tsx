@@ -7,6 +7,7 @@ import { useState, type JSX, type SubmitEvent } from "react";
 import { Task } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
+import { useProjects } from "@/lib/hooks/useProjects";
 import styled from "styled-components";
 import ButtonPrimary from "../../../components/ButtonPrimary/ButtonPrimary";
 import TaskList from "../../../components/TaskList/TaskList";
@@ -50,11 +51,20 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
         deleteCategory,
     } = useCategories();
 
-    if (TasksIsLoading || CategoriesIsLoading) return <p>Loading...</p>;
-    if (TasksError || CategoriesError) return <p>Failed to load tasks.</p>;
+    const {
+        data: ProjectsFetch,
+        error: ProjectsError,
+        isLoading: ProjectsIsLoading,
+    } = useProjects();
+
+    if (TasksIsLoading || CategoriesIsLoading || ProjectsIsLoading)
+        return <p>Loading...</p>;
+    if (TasksError || CategoriesError || ProjectsError)
+        return <p>Failed to load tasks.</p>;
 
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
+    const projectsInDb = ProjectsFetch?.projects ?? [];
     const currentCategory = CategoriesFetch?.categories.find(
         (category) => category.slug === categorySlug,
     ) ?? { id: 0, name: "Not found...", slug: "not-found", color: "#ffffff" };
@@ -163,7 +173,12 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                 <Modal>
                     <TaskForm
                         task={selectedTask}
-                        defaultValues={{ defaultCategory: currentCategory.id }}
+                        defaultValues={{
+                            defaultCategory: currentCategory.id,
+                            defaultProject: selectedTask
+                                ? selectedTask.project_id
+                                : null,
+                        }}
                         onSubmit={
                             selectedTask
                                 ? (event) =>
@@ -206,6 +221,8 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                         taskList={tasksInDb}
                         categories={categoriesInDb}
                         categoriesVisible={false}
+                        projects={projectsInDb}
+                        projectsVisible={true}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}

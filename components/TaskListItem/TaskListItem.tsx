@@ -1,6 +1,7 @@
 import styled from "styled-components";
 import type { Task } from "@/types/task";
 import type { Category } from "@/types/category";
+import type { Project } from "@/types/project";
 import { type SubmitEvent } from "react";
 import SubTaskList from "../SubTaskList/SubTaskList";
 
@@ -12,6 +13,8 @@ type TaskListItemProps = {
     task: TaskWithChildren;
     category: Category | null;
     categoryVisible: boolean;
+    project: Project | null;
+    projectVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -26,6 +29,8 @@ export default function TaskListItem({
     task,
     category,
     categoryVisible,
+    project,
+    projectVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
@@ -54,6 +59,9 @@ export default function TaskListItem({
                 >
                     {task.title}
                 </button>
+                {project && projectVisible && (
+                    <ProjectTag>({project.name})</ProjectTag>
+                )}
                 {category && categoryVisible && (
                     <CategoryTag $color={category.color}>
                         {category.name}
@@ -103,6 +111,13 @@ const TitleWrapper = styled.div`
             cursor: pointer;
         }
     }
+`;
+
+const ProjectTag = styled.span`
+    font-size: small;
+    padding-top: 3px;
+    margin-left: 12px;
+    font-style: italic;
 `;
 
 const CategoryTag = styled.span<{ $color: string }>`

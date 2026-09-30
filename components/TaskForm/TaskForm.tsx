@@ -2,6 +2,7 @@ import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import { Task } from "@/types/task";
 import { useCategories } from "@/lib/hooks/useCategories";
+import { useProjects } from "@/lib/hooks/useProjects";
 import SubTaskList from "../SubTaskList/SubTaskList";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
@@ -13,7 +14,10 @@ type TaskWithChildren = Task & {
 
 type TaskFormProps = {
     task: TaskWithChildren | null;
-    defaultValues: { defaultCategory: number | "" };
+    defaultValues: {
+        defaultCategory?: number | "";
+        defaultProject?: number | null;
+    };
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;
@@ -44,11 +48,17 @@ export default function TaskForm({
         error: CategoriesError,
         isLoading: CategoriesIsLoading,
     } = useCategories();
+    const {
+        data: ProjectsFetch,
+        error: ProjectsError,
+        isLoading: ProjectsIsLoading,
+    } = useProjects();
 
-    if (CategoriesIsLoading) return <p>Loading...</p>;
-    if (CategoriesError) return <p>Failed to load tasks.</p>;
+    if (CategoriesIsLoading || ProjectsIsLoading) return <p>Loading...</p>;
+    if (CategoriesError || ProjectsError) return <p>Failed to load tasks.</p>;
 
     const categoriesInDb = CategoriesFetch?.categories ?? [];
+    const projectsInDb = ProjectsFetch?.projects ?? [];
 
     function handleDelete(taskId: number) {
         if (task) {
@@ -78,7 +88,7 @@ export default function TaskForm({
                 </FormItemWrapper>
                 <FormItemWrapper>
                     <label htmlFor="category-select">Category</label>
-                    <CategorySelect
+                    <StyledSelect
                         id="category-select"
                         name="category_id"
                         defaultValue={
@@ -91,7 +101,26 @@ export default function TaskForm({
                                 {category.name}
                             </option>
                         ))}
-                    </CategorySelect>
+                    </StyledSelect>
+                </FormItemWrapper>
+                <FormItemWrapper>
+                    <label htmlFor="project-select">Project</label>
+                    <StyledSelect
+                        id="project-select"
+                        name="project_id"
+                        defaultValue={
+                            task?.project_id ??
+                            defaultValues.defaultProject ??
+                            ""
+                        }
+                    >
+                        <option value={""}>None</option>
+                        {projectsInDb.map((project) => (
+                            <option key={project.id} value={project.id}>
+                                {project.name}
+                            </option>
+                        ))}
+                    </StyledSelect>
                 </FormItemWrapper>
                 <ButtonContainer>
                     <ButtonPrimary
@@ -155,7 +184,7 @@ const FormItemWrapper = styled.div`
     gap: 4px;
 `;
 
-const CategorySelect = styled.select`
+const StyledSelect = styled.select`
     padding: 8px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;

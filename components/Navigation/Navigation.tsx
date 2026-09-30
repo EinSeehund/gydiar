@@ -1,23 +1,42 @@
 import Link from "next/link";
 import styled from "styled-components";
 import type { Category } from "@/types/category";
+import type { Project } from "@/types/project";
 import { useCategories } from "@/lib/hooks/useCategories";
+import { useProjects } from "@/lib/hooks/useProjects";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import Modal from "../Modal/Modal";
 import CategoryForm from "../CategoryForm/CategoryForm";
 import { SubmitEvent } from "react";
+import ProjectForm from "../ProjectForm/ProjectForm";
 
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
+    const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
 
-    const { data, isLoading, error, mutate, addCategory } = useCategories();
+    const {
+        data: CategoryData,
+        isLoading: CategoryIsLoading,
+        error: CategoryError,
+        mutate: mutateCategories,
+        addCategory,
+    } = useCategories();
+    const {
+        data: ProjectData,
+        isLoading: ProjectIsLoading,
+        error: ProjectError,
+        mutate: mutateProjects,
+        addProject,
+    } = useProjects();
+
     const { asPath } = useRouter();
 
-    if (isLoading) return <p>Loading...</p>;
-    if (error) return <p>Failed to load tasks.</p>;
+    if (CategoryIsLoading || ProjectIsLoading) return <p>Loading...</p>;
+    if (CategoryError || ProjectError) return <p>Failed to load tasks.</p>;
 
-    const categories = data?.categories;
+    const categories = CategoryData?.categories;
+    const projects = ProjectData?.projects;
 
     const linkStyle = (href: string) => ({
         fontWeight: asPath === href ? "bold" : "normal",
@@ -29,12 +48,26 @@ export default function Navigation() {
     function closeCategoryForm() {
         setShowCategoryForm(false);
     }
+    function openProjectForm() {
+        setShowProjectForm(true);
+    }
+    function closeProjectForm() {
+        setShowProjectForm(false);
+    }
+
     async function handleNewCategory(
         event: SubmitEvent<HTMLFormElement>,
     ): Promise<void> {
         await addCategory(event);
-        await mutate();
+        await mutateCategories();
         setShowCategoryForm(false);
+    }
+    async function handleNewProject(
+        event: SubmitEvent<HTMLFormElement>,
+    ): Promise<void> {
+        await addProject(event);
+        await mutateProjects();
+        setShowProjectForm(false);
     }
 
     return (
@@ -45,6 +78,16 @@ export default function Navigation() {
                         category={null}
                         onClose={closeCategoryForm}
                         onSubmit={handleNewCategory}
+                        onDelete={() => {}}
+                    />
+                </Modal>
+            )}
+            {showProjectForm && (
+                <Modal>
+                    <ProjectForm
+                        project={null}
+                        onClose={closeProjectForm}
+                        onSubmit={handleNewProject}
                         onDelete={() => {}}
                     />
                 </Modal>
@@ -75,9 +118,28 @@ export default function Navigation() {
                             {category.name}
                         </CategoryLink>
                     ))}
-                    <CategoryAddButton onClick={openCategoryForm}>
+                    <AddButton onClick={openCategoryForm}>
                         + Add Category
-                    </CategoryAddButton>
+                    </AddButton>
+                    <hr />
+                    <h3>Projects</h3>
+                    {projects?.map((project: Project) => (
+                        <ProjectLink
+                            key={project.id}
+                            href={`/projects/${project.slug}`}
+                            style={linkStyle(`/projects/${project.slug}`)}
+                            aria-current={
+                                asPath === `/projects/${project.slug}`
+                                    ? "page"
+                                    : undefined
+                            }
+                        >
+                            {project.name}
+                        </ProjectLink>
+                    ))}
+                    <AddButton onClick={openProjectForm}>
+                        + New Project
+                    </AddButton>
                 </NavBar>
             </NavContainer>
         </>
@@ -90,7 +152,7 @@ const NavContainer = styled.div`
     left: 0;
     width: 250px;
     padding: 40px;
-    padding-top: 106px;
+    padding-top: 30px;
     background-color: var(--background);
     border-right: 1px solid gray;
 
@@ -116,11 +178,15 @@ const CategoryLink = styled(Link)<{ $color: string }>`
     border-radius: 4px;
 `;
 
-const CategoryAddButton = styled.button`
+const AddButton = styled.button`
     text-align: left;
     background: none;
     border: none;
     font-size: 0.9rem;
     margin-top: 8px;
     cursor: pointer;
+`;
+
+const ProjectLink = styled(Link)`
+    font-style: italic;
 `;

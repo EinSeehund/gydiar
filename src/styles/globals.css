@@ -49,7 +49,7 @@ a {
 }
 
 main {
-  padding-top: 66px;
+  padding-top: 0px;
   padding-left: 280px;
 
   @media screen and (max-width: 600px) {
