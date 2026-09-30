@@ -1,5 +1,6 @@
 import type { Task } from "@/types/task";
 import type { Category } from "@/types/category";
+import type { Project } from "@/types/project";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
@@ -13,6 +14,8 @@ type TaskListProps = {
     taskList: Task[];
     categories: Category[];
     categoriesVisible: boolean;
+    projects: Project[];
+    projectsVisible: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -27,6 +30,8 @@ export default function TaskList({
     taskList,
     categories,
     categoriesVisible,
+    projects,
+    projectsVisible,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
@@ -66,6 +71,18 @@ export default function TaskList({
         return null;
     }
 
+    function findProject(taskObj: Task | TaskWithChildren) {
+        if (taskObj.project_id) {
+            const foundProject = projects.find(
+                (project) => project.id === taskObj.project_id,
+            );
+            if (foundProject) {
+                return foundProject;
+            }
+        }
+        return null;
+    }
+
     const hasNoTasks = taskList.length === 0;
     const hasDoneTasks = taskList.some(
         (task) => task.status === "done" && task.parent_task_id === null,
@@ -73,7 +90,11 @@ export default function TaskList({
 
     return (
         <TaskListWrapper>
-            {hasNoTasks && <NoTasksText>There are no tasks in this list yet...</NoTasksText>}
+            {hasNoTasks && (
+                <NoTasksText>
+                    There are no tasks in this list yet...
+                </NoTasksText>
+            )}
             <TaskListOpen>
                 {taskTree
                     .filter(
@@ -87,6 +108,8 @@ export default function TaskList({
                             task={task}
                             category={findCategory(task)}
                             categoryVisible={categoriesVisible}
+                            project={findProject(task)}
+                            projectVisible={projectsVisible}
                             onCheckboxChange={onCheckboxChange}
                             onTitleClick={onTitleClick}
                             onSubmitSubTask={onSubmitSubTask}
@@ -111,6 +134,8 @@ export default function TaskList({
                                     task={task}
                                     category={findCategory(task)}
                                     categoryVisible={categoriesVisible}
+                                    project={findProject(task)}
+                                    projectVisible={projectsVisible}
                                     onCheckboxChange={onCheckboxChange}
                                     onTitleClick={onTitleClick}
                                     onSubmitSubTask={onSubmitSubTask}

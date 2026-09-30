@@ -5,6 +5,7 @@ import styled from "styled-components";
 import { Task } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
+import { useProjects } from "@/lib/hooks/useProjects";
 import Modal from "../../components/Modal/Modal";
 import TaskList from "../../components/TaskList/TaskList";
 import TaskForm from "../../components/TaskForm/TaskForm";
@@ -38,11 +39,20 @@ const Home: NextPage = ({}): JSX.Element => {
         isLoading: CategoriesIsLoading,
     } = useCategories();
 
-    if (TasksIsLoading || CategoriesIsLoading) return <p>Loading...</p>;
-    if (TasksError || CategoriesError) return <p>Failed to load tasks.</p>;
+    const {
+        data: ProjectsFetch,
+        error: ProjectsError,
+        isLoading: ProjectsIsLoading,
+    } = useProjects();
+
+    if (TasksIsLoading || CategoriesIsLoading || ProjectsIsLoading)
+        return <p>Loading...</p>;
+    if (TasksError || CategoriesError || ProjectsError)
+        return <p>Failed to load tasks.</p>;
 
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
+    const projectsInDb = ProjectsFetch?.projects ?? [];
 
     function openNewTaskForm(): void {
         setSelectedTask(null);
@@ -149,6 +159,8 @@ const Home: NextPage = ({}): JSX.Element => {
                         taskList={tasksInDb}
                         categories={categoriesInDb}
                         categoriesVisible={true}
+                        projects={projectsInDb}
+                        projectsVisible={true}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}

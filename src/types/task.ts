@@ -6,4 +6,5 @@ export type Task = {
     status: string;
     parent_task_id: number | null;
     category_id: number | null;
+    project_id: number | null;
 };
