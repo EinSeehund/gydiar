@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import Image from "next/image";
 
 import { useState, type JSX, type SubmitEvent } from "react";
 
@@ -69,6 +70,9 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
         ProjectsFetch?.projects.find(
             (project) => project.slug === projectSlug,
         ) ?? null;
+    const projectCompleted =
+        tasksInDb?.length > 0 &&
+        !tasksInDb?.some((task) => task.status === "open");
 
     if (!currentProject) {
         return <p>Project not found.</p>;
@@ -231,6 +235,23 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
                     <ProjectDescription>
                         {currentProject.description}
                     </ProjectDescription>
+                    {projectCompleted && (
+                        <CelebrationMessage>
+                            <h3>🎉🎉🎉 FINISHED! 🎉🎉🎉</h3>
+                            <Image
+                                src="/gydiar-machine.gif"
+                                alt="Celebration"
+                                width={253}
+                                height={450}
+                                unoptimized
+                                loading="eager"
+                            />
+                            <p>
+                                <b>Congratulations!</b> <br />You really got your ducks in a
+                                row and completed all tasks in this project!
+                            </p>
+                        </CelebrationMessage>
+                    )}
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
@@ -304,4 +325,14 @@ const PercentageDisplay = styled.span`
     font-weight: bold;
     border-radius: 4px;
     font-size: 0.7rem;
+`;
+
+const CelebrationMessage = styled.section`
+    padding-left: 28px;
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 500px;
 `;
