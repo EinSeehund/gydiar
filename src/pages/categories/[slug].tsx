@@ -173,7 +173,12 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                 <Modal>
                     <TaskForm
                         task={selectedTask}
-                        defaultValues={{ defaultCategory: currentCategory.id }}
+                        defaultValues={{
+                            defaultCategory: currentCategory.id,
+                            defaultProject: selectedTask
+                                ? selectedTask.project_id
+                                : null,
+                        }}
                         onSubmit={
                             selectedTask
                                 ? (event) =>

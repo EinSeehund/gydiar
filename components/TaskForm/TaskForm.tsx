@@ -13,7 +13,10 @@ type TaskWithChildren = Task & {
 
 type TaskFormProps = {
     task: TaskWithChildren | null;
-    defaultValues: { defaultCategory: number | "" };
+    defaultValues: {
+        defaultCategory?: number | "";
+        defaultProject?: number | null;
+    };
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;

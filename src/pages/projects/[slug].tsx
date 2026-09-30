@@ -1,25 +1,34 @@
 import type { NextPage } from "next";
 import Head from "next/head";
+import { useRouter } from "next/router";
+
 import { useState, type JSX, type SubmitEvent } from "react";
-import styled from "styled-components";
+
 import { Task } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
-import Modal from "../../components/Modal/Modal";
-import TaskList from "../../components/TaskList/TaskList";
-import TaskForm from "../../components/TaskForm/TaskForm";
-import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
+import styled from "styled-components";
+import ButtonPrimary from "../../../components/ButtonPrimary/ButtonPrimary";
+import TaskList from "../../../components/TaskList/TaskList";
+import TaskForm from "../../../components/TaskForm/TaskForm";
+import Modal from "../../../components/Modal/Modal";
+import CategoryForm from "../../../components/CategoryForm/CategoryForm";
 
 type TaskWithChildren = Task & {
     children: Task[];
 };
 
-const Home: NextPage = ({}): JSX.Element => {
+const ProjectPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
+    const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
     const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
         null,
     );
+
+    const router = useRouter();
+    const { slug } = router.query;
+    const projectSlug = typeof slug === "string" ? slug : undefined;
 
     const {
         data: TasksFetch,
@@ -31,12 +40,15 @@ const Home: NextPage = ({}): JSX.Element => {
         updateTask,
         deleteTask,
         updateTaskStatus,
-    } = useTasks();
+    } = useTasks({ project: projectSlug });
 
     const {
         data: CategoriesFetch,
         error: CategoriesError,
         isLoading: CategoriesIsLoading,
+        mutate: mutateCategories,
+        updateCategory,
+        deleteCategory,
     } = useCategories();
 
     const {
@@ -53,6 +65,14 @@ const Home: NextPage = ({}): JSX.Element => {
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
     const projectsInDb = ProjectsFetch?.projects ?? [];
+    const currentProject = ProjectsFetch?.projects.find(
+        (project) => project.slug === projectSlug,
+    ) ?? {
+        id: 0,
+        name: "Not found...",
+        slug: "not-found",
+        description: "No description",
+    };
 
     function openNewTaskForm(): void {
         setSelectedTask(null);
@@ -67,6 +87,28 @@ const Home: NextPage = ({}): JSX.Element => {
     function closeTaskForm(): void {
         setSelectedTask(null);
         setShowTaskForm(false);
+    }
+
+    function openProjectForm(): void {
+        setShowCategoryForm(true);
+    }
+
+    function closeCategoryForm(): void {
+        setShowCategoryForm(false);
+    }
+
+    async function handleUpdateCategory(
+        event: SubmitEvent<HTMLFormElement>,
+        id: number,
+    ): Promise<void> {
+        await updateCategory(event, id);
+        await mutateCategories();
+        setShowCategoryForm(false);
+    }
+
+    async function handleDeleteCategory(id: number): Promise<void> {
+        await deleteCategory(id);
+        await router.push("/");
     }
 
     async function refreshUI(): Promise<void> {
@@ -137,7 +179,7 @@ const Home: NextPage = ({}): JSX.Element => {
                     <TaskForm
                         task={selectedTask}
                         defaultValues={{
-                            
+                            defaultProject: currentProject.id,
                         }}
                         onSubmit={
                             selectedTask
@@ -155,20 +197,40 @@ const Home: NextPage = ({}): JSX.Element => {
                     />
                 </Modal>
             )}
+            {showCategoryForm && (
+                <Modal>
+                    <CategoryForm
+                        category={currentCategory}
+                        onClose={closeCategoryForm}
+                        onSubmit={(event) =>
+                            handleUpdateCategory(event, currentCategory.id)
+                        }
+                        onDelete={handleDeleteCategory}
+                    />
+                </Modal>
+            )}
             <main>
                 <Container>
-                    <StyledPageTitle>All Tasks</StyledPageTitle>
+                    <ProjectTitleContainer>
+                        <ProjectTitle>{currentProject.name}</ProjectTitle>
+                        <ProjectEditButton onClick={openProjectForm}>
+                            Edit Project
+                        </ProjectEditButton>
+                    </ProjectTitleContainer>
+                    <ProjectDescription>
+                        {currentProject.description}
+                    </ProjectDescription>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
                         categoriesVisible={true}
                         projects={projectsInDb}
-                        projectsVisible={true}
+                        projectsVisible={false}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}
-                        onDelete={handleDeleteTask}
                         onUpdateSubTask={handleUpdateTask}
+                        onDelete={handleDeleteTask}
                     />
                     <ButtonWrapper>
                         <ButtonPrimary
@@ -185,16 +247,40 @@ const Home: NextPage = ({}): JSX.Element => {
     );
 };
 
-export default Home;
+export default ProjectPage;
 
 const Container = styled.div`
     padding: 64px;
 `;
 
-const ButtonWrapper = styled.p`
-    padding-left: 28px;
+const ProjectTitleContainer = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 32px;
 `;
 
-const StyledPageTitle = styled.h2`
+const ProjectTitle = styled.h2`
+    border-radius: 6px;
+    padding-left: 28px;
+    font-style: italic;
+`;
+
+const ProjectEditButton = styled.button`
+    border: none;
+    background: none;
+    font-size: small;
+    margin-top: 8px;
+    margin-left: 29px;
+    cursor: pointer;
+`;
+
+const ProjectDescription = styled.p`
+    padding-left: 28px;
     margin-bottom: 32px;
+    max-width: 500px;
+`;
+
+const ButtonWrapper = styled.p`
+    padding-left: 28px;
 `;

@@ -9,11 +9,15 @@ type TasksResponse = {
 
 type TaskFilter = {
     category?: string;
+    project?: string;
 };
 
 function buildUrl(filter?: TaskFilter): string {
     if (filter?.category) {
         return `/api/tasks?category=${encodeURIComponent(filter.category)}`;
+    }
+    if (filter?.project) {
+        return `/api/tasks?project=${encodeURIComponent(filter.project)}`;
     }
     return "/api/tasks";
 }

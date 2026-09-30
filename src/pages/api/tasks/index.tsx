@@ -6,7 +6,7 @@ export default async function handler(
     res: NextApiResponse,
 ) {
     if (req.method === "GET") {
-        const { category } = req.query;
+        const { category, project } = req.query;
 
         if (Array.isArray(category)) {
             return res.status(400).json({ error: "Invalid query parameter" });
@@ -33,6 +33,26 @@ export default async function handler(
                     SELECT * FROM visible_tasks
                     ORDER BY id DESC`,
                     [category],
+                );
+            } else if (project) {
+                result = await pool.query(
+                    `WITH project_tasks AS (
+                        SELECT t.*
+                        FROM tasks t
+                        JOIN projects p ON p.id = t.project_id
+                        WHERE p.slug = $1
+                    ),
+                    visible_tasks AS (
+                        SELECT * FROM project_tasks
+                        UNION
+                        SELECT child.*
+                        FROM tasks child
+                        JOIN project_tasks parent
+                            ON child.parent_task_id = parent.id
+                    )
+                    SELECT * FROM visible_tasks
+                    ORDER BY id DESC`,
+                    [project],
                 );
             } else {
                 result = await pool.query("SELECT * FROM tasks ORDER BY id");
