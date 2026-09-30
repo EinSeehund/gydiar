@@ -97,6 +97,14 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
         setShowCategoryForm(false);
     }
 
+    function calculatePercent(tasks: Task[]) {
+        if (tasks.length > 0) {
+            const tasksDone = tasks.filter((task) => task.status === "done");
+            return Math.floor((100 / tasks.length) * tasksDone.length);
+        }
+        return 0;
+    }
+
     async function handleUpdateCategory(
         event: SubmitEvent<HTMLFormElement>,
         id: number,
@@ -213,6 +221,9 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
                 <Container>
                     <ProjectTitleContainer>
                         <ProjectTitle>{currentProject.name}</ProjectTitle>
+                        <PercentageDisplay>
+                            {calculatePercent(tasksInDb)}% COMPLETED
+                        </PercentageDisplay>
                         <ProjectEditButton onClick={openProjectForm}>
                             Edit Project
                         </ProjectEditButton>
@@ -283,4 +294,14 @@ const ProjectDescription = styled.p`
 
 const ButtonWrapper = styled.p`
     padding-left: 28px;
+`;
+
+const PercentageDisplay = styled.span`
+    background-color: var(--foreground);
+    color: var(--background);
+    margin: 8px 28px;
+    padding: 4px 8px;
+    font-weight: bold;
+    border-radius: 4px;
+    font-size: 0.7rem;
 `;
