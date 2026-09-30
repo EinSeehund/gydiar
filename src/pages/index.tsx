@@ -155,6 +155,7 @@ const Home: NextPage = ({}): JSX.Element => {
             )}
             <main>
                 <Container>
+                    <StyledPageTitle>All Tasks</StyledPageTitle>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}
@@ -191,3 +192,7 @@ const Container = styled.div`
 const ButtonWrapper = styled.p`
     padding-left: 28px;
 `;
+
+const StyledPageTitle = styled.h2`
+    margin-bottom: 32px;
+`
