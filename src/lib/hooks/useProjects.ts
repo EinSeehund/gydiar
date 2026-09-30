@@ -26,6 +26,7 @@ export function useProjects() {
         if (typeof newProjectName !== "string" || !newProjectName.trim()) {
             return;
         }
+        console.log(formObject)
         const response = await fetch("/api/projects", {
             method: "POST",
             headers: {

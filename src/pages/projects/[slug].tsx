@@ -13,7 +13,7 @@ import ButtonPrimary from "../../../components/ButtonPrimary/ButtonPrimary";
 import TaskList from "../../../components/TaskList/TaskList";
 import TaskForm from "../../../components/TaskForm/TaskForm";
 import Modal from "../../../components/Modal/Modal";
-import CategoryForm from "../../../components/CategoryForm/CategoryForm";
+import ProjectForm from "../../../components/ProjectForm/ProjectForm";
 
 type TaskWithChildren = Task & {
     children: Task[];
@@ -21,7 +21,7 @@ type TaskWithChildren = Task & {
 
 const ProjectPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
-    const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
+    const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
     const [selectedTask, setSelectedTask] = useState<TaskWithChildren | null>(
         null,
     );
@@ -46,15 +46,15 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
         data: CategoriesFetch,
         error: CategoriesError,
         isLoading: CategoriesIsLoading,
-        mutate: mutateCategories,
-        updateCategory,
-        deleteCategory,
     } = useCategories();
 
     const {
         data: ProjectsFetch,
         error: ProjectsError,
         isLoading: ProjectsIsLoading,
+        mutate: mutateProjects,
+        updateProject,
+        deleteProject,
     } = useProjects();
 
     if (TasksIsLoading || CategoriesIsLoading || ProjectsIsLoading)
@@ -65,14 +65,14 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
     const tasksInDb = TasksFetch?.tasks ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
     const projectsInDb = ProjectsFetch?.projects ?? [];
-    const currentProject = ProjectsFetch?.projects.find(
-        (project) => project.slug === projectSlug,
-    ) ?? {
-        id: 0,
-        name: "Not found...",
-        slug: "not-found",
-        description: "No description",
-    };
+    const currentProject =
+        ProjectsFetch?.projects.find(
+            (project) => project.slug === projectSlug,
+        ) ?? null;
+
+    if (!currentProject) {
+        return <p>Project not found.</p>;
+    }
 
     function openNewTaskForm(): void {
         setSelectedTask(null);
@@ -90,11 +90,11 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
     }
 
     function openProjectForm(): void {
-        setShowCategoryForm(true);
+        setShowProjectForm(true);
     }
 
-    function closeCategoryForm(): void {
-        setShowCategoryForm(false);
+    function closeProjectForm(): void {
+        setShowProjectForm(false);
     }
 
     function calculatePercent(tasks: Task[]) {
@@ -105,17 +105,17 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
         return 0;
     }
 
-    async function handleUpdateCategory(
+    async function handleUpdateProject(
         event: SubmitEvent<HTMLFormElement>,
         id: number,
     ): Promise<void> {
-        await updateCategory(event, id);
-        await mutateCategories();
-        setShowCategoryForm(false);
+        await updateProject(event, id);
+        await mutateProjects();
+        closeProjectForm();
     }
 
-    async function handleDeleteCategory(id: number): Promise<void> {
-        await deleteCategory(id);
+    async function handleDeleteProject(id: number): Promise<void> {
+        await deleteProject(id);
         await router.push("/");
     }
 
@@ -205,15 +205,15 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
                     />
                 </Modal>
             )}
-            {showCategoryForm && (
+            {showProjectForm && (
                 <Modal>
-                    <CategoryForm
-                        category={currentCategory}
-                        onClose={closeCategoryForm}
+                    <ProjectForm
+                        project={currentProject}
+                        onClose={closeProjectForm}
                         onSubmit={(event) =>
-                            handleUpdateCategory(event, currentCategory.id)
+                            handleUpdateProject(event, currentProject.id)
                         }
-                        onDelete={handleDeleteCategory}
+                        onDelete={handleDeleteProject}
                     />
                 </Modal>
             )}

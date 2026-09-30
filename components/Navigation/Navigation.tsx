@@ -9,6 +9,7 @@ import { useState } from "react";
 import Modal from "../Modal/Modal";
 import CategoryForm from "../CategoryForm/CategoryForm";
 import { SubmitEvent } from "react";
+import ProjectForm from "../ProjectForm/ProjectForm";
 
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
@@ -77,6 +78,16 @@ export default function Navigation() {
                         category={null}
                         onClose={closeCategoryForm}
                         onSubmit={handleNewCategory}
+                        onDelete={() => {}}
+                    />
+                </Modal>
+            )}
+            {showProjectForm && (
+                <Modal>
+                    <ProjectForm
+                        project={null}
+                        onClose={closeProjectForm}
+                        onSubmit={handleNewProject}
                         onDelete={() => {}}
                     />
                 </Modal>
