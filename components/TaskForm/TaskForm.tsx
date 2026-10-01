@@ -17,6 +17,7 @@ type TaskFormProps = {
     defaultValues: {
         defaultCategory?: number | "";
         defaultProject?: number | null;
+        defaultDueDate?: string;
     };
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
@@ -123,12 +124,14 @@ export default function TaskForm({
                     </StyledSelect>
                 </FormItemWrapper>
                 <FormItemWrapper>
-                    <label htmlFor="due_date">Deadline</label>
+                    <label htmlFor="due_date">Due Date</label>
                     <StyledInput
                         type="date"
                         id="due_date"
                         name="due_date"
-                        defaultValue={task?.due_date ?? ""}
+                        defaultValue={
+                            task?.due_date ?? defaultValues.defaultDueDate ?? ""
+                        }
                     />
                 </FormItemWrapper>
                 <ButtonContainer>

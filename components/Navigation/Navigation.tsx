@@ -101,6 +101,15 @@ export default function Navigation() {
                     >
                         All Tasks
                     </Link>
+                    <Link
+                        href="/calendar"
+                        style={linkStyle("/calendar")}
+                        aria-current={
+                            asPath === "/calendar" ? "page" : undefined
+                        }
+                    >
+                        Calendar
+                    </Link>
                     <hr />
                     <h3>Categories</h3>
                     {categories?.map((category: Category) => (

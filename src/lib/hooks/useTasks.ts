@@ -124,6 +124,18 @@ export function useTasks(filter?: TaskFilter) {
             return;
         }
     }
+    async function updateTaskDueDate(
+        id: number,
+        dueDate: string | null | undefined,
+    ) {
+        const response = await fetch(`/api/tasks/${id}/due-date`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ due_date: dueDate }),
+        });
+
+        return response.ok;
+    }
     async function deleteTask(id: number): Promise<void> {
         const response = await fetch(`/api/tasks/${id}`, {
             method: "DELETE",
@@ -161,6 +173,7 @@ export function useTasks(filter?: TaskFilter) {
         addTask,
         addSubTask,
         updateTask,
+        updateTaskDueDate,
         deleteTask,
         updateTaskStatus,
     };
