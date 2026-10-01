@@ -75,7 +75,7 @@ export default function TaskListItem({
                     $dueToday={isToday(task.due_date)}
                     $overdue={isOverdue(task.due_date, task.status)}
                 >
-                    Deadline: {formatDueDate(task.due_date)}
+                    Due date: {formatDueDate(task.due_date)}
                     {isToday(task.due_date) && " (Today)"}
                     {isTomorrow(task.due_date) && " (Tomorrow)"}
                     {isOverdue(task.due_date, task.status) && " (Overdue)"}
