@@ -10,6 +10,7 @@ type TasksResponse = {
 type TaskFilter = {
     category?: string;
     project?: string;
+    due?: string;
 };
 
 function buildUrl(filter?: TaskFilter): string {
@@ -18,6 +19,9 @@ function buildUrl(filter?: TaskFilter): string {
     }
     if (filter?.project) {
         return `/api/tasks?project=${encodeURIComponent(filter.project)}`;
+    }
+    if (filter?.due) {
+        return `/api/tasks?due=${encodeURIComponent(filter.due)}`;
     }
     return "/api/tasks";
 }

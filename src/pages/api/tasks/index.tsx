@@ -7,15 +7,44 @@ export default async function handler(
     res: NextApiResponse,
 ) {
     if (req.method === "GET") {
-        const { category, project } = req.query;
+        const { category, project, due } = req.query;
 
-        if (Array.isArray(category)) {
+        if (Array.isArray(category) || Array.isArray(due)) {
             return res.status(400).json({ error: "Invalid query parameter" });
+        }
+
+        let dueDate: string | null | undefined;
+        try {
+            dueDate = parseDueDate(due);
+        } catch {
+            res.status(400).json({ success: false, error: "Invalid due date" });
         }
 
         try {
             let result;
-            if (category) {
+            if (dueDate) {
+                result = await pool.query(
+                    `WITH due_tasks AS (
+                        SELECT * FROM tasks 
+                        WHERE due_date = $1
+                        OR (due_date < $1 AND status = 'open')
+                        OR (updated_at::date = NOW()::date AND status = 'done')
+                    ),
+                    visible_tasks AS (
+                        SELECT * FROM due_tasks
+                        UNION
+                        SELECT child.*
+                        FROM tasks child
+                        JOIN due_tasks parent ON child.parent_task_id = parent.id
+                    )
+                    SELECT id, title, created_at, updated_at, status,
+                        parent_task_id, category_id, project_id,
+                        due_date::text AS due_date
+                    FROM visible_tasks
+                    ORDER BY created_at DESC`,
+                    [dueDate],
+                );
+            } else if (category) {
                 result = await pool.query(
                     `WITH category_tasks AS (
                         SELECT t.*
