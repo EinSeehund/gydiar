@@ -23,9 +23,15 @@ export default async function handler(
             const result = await pool.query(
                 `
                 UPDATE "public"."tasks"
-                SET "title" = $1, "category_id" = $2, "project_id" = $3
-                WHERE "id" = $4`,
-                [title, req.body.category_id, req.body.project_id, id],
+                SET "title" = $1, "category_id" = $2, "project_id" = $3, "due_date" = $4
+                WHERE "id" = $5`,
+                [
+                    title,
+                    req.body.category_id,
+                    req.body.project_id,
+                    req.body.due_date,
+                    id,
+                ],
             );
 
             if (result.rowCount === 0) {

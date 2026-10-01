@@ -107,6 +107,9 @@ export function useTasks(filter?: TaskFilter) {
             ...formObject,
             category_id:
                 formObject.category_id === "" ? null : formObject.category_id,
+            project_id:
+                formObject.project_id === "" ? null : formObject.project_id,
+            due_date: formObject.due_date === "" ? null : formObject.due_date,
         };
 
         const response = await fetch(`/api/tasks/${id}`, {
