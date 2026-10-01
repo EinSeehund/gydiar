@@ -129,19 +129,19 @@ export default function TaskList({
                                     task.parent_task_id === null,
                             )
                             .map((task) => (
-                                <TaskListItem
-                                    key={task.id}
-                                    task={task}
-                                    category={findCategory(task)}
-                                    categoryVisible={categoriesVisible}
-                                    project={findProject(task)}
-                                    projectVisible={projectsVisible}
-                                    onCheckboxChange={onCheckboxChange}
-                                    onTitleClick={onTitleClick}
-                                    onSubmitSubTask={onSubmitSubTask}
-                                    onDelete={onDelete}
-                                    onUpdateSubTask={onUpdateSubTask}
-                                />
+                                    <TaskListItem
+                                        key={task.id}
+                                        task={task}
+                                        category={findCategory(task)}
+                                        categoryVisible={categoriesVisible}
+                                        project={findProject(task)}
+                                        projectVisible={projectsVisible}
+                                        onCheckboxChange={onCheckboxChange}
+                                        onTitleClick={onTitleClick}
+                                        onSubmitSubTask={onSubmitSubTask}
+                                        onDelete={onDelete}
+                                        onUpdateSubTask={onUpdateSubTask}
+                                    />
                             ))}
                     </TaskListDone>
                 </StyledDetails>
@@ -156,7 +156,7 @@ const TaskListOpen = styled.ul`
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 12px;
     margin-bottom: 32px;
 `;
 

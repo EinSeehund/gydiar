@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
+import { parseDueDate } from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
@@ -30,8 +31,18 @@ export default async function handler(
                         JOIN category_tasks parent
                             ON child.parent_task_id = parent.id
                     )
-                    SELECT * FROM visible_tasks
-                    ORDER BY id DESC`,
+                    SELECT
+                        id,
+                        title,
+                        created_at,
+                        updated_at,
+                        status,
+                        parent_task_id,
+                        category_id,
+                        project_id,
+                        due_date::text AS due_date
+                    FROM visible_tasks
+                    ORDER BY due_date ASC NULLS LAST, created_at DESC`,
                     [category],
                 );
             } else if (project) {
@@ -50,12 +61,35 @@ export default async function handler(
                         JOIN project_tasks parent
                             ON child.parent_task_id = parent.id
                     )
-                    SELECT * FROM visible_tasks
-                    ORDER BY id DESC`,
+                    SELECT
+                        id,
+                        title,
+                        created_at,
+                        updated_at,
+                        status,
+                        parent_task_id,
+                        category_id,
+                        project_id,
+                        due_date::text AS due_date
+                    FROM visible_tasks
+                    ORDER BY due_date ASC NULLS LAST, created_at DESC`,
                     [project],
                 );
             } else {
-                result = await pool.query("SELECT * FROM tasks ORDER BY id");
+                result = await pool.query(`
+                    SELECT 
+                    id, 
+                    title, 
+                    created_at, 
+                    updated_at, 
+                    status, 
+                    parent_task_id, 
+                    category_id, 
+                    project_id, 
+                    due_date::text AS due_date 
+                    FROM tasks 
+                    ORDER BY due_date ASC NULLS LAST, created_at DESC
+                    `);
             }
             res.status(200).json({ success: true, tasks: result.rows });
         } catch (error) {
@@ -64,16 +98,19 @@ export default async function handler(
         }
     } else if (req.method === "POST") {
         try {
+            const due_date = parseDueDate(req.body.due_date) ?? null;
+
             await pool.query(
                 `
-                INSERT INTO "public"."tasks" ("title", "parent_task_id", "category_id", "project_id")
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO "public"."tasks" ("title", "parent_task_id", "category_id", "project_id", "due_date")
+                VALUES ($1, $2, $3, $4, $5)
             `,
                 [
                     req.body.taskTitle,
                     req.body.parent_task_id,
                     req.body.category_id,
                     req.body.project_id,
+                    due_date,
                 ],
             );
             res.status(200).json({

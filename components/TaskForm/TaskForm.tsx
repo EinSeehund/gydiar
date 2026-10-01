@@ -122,6 +122,15 @@ export default function TaskForm({
                         ))}
                     </StyledSelect>
                 </FormItemWrapper>
+                <FormItemWrapper>
+                    <label htmlFor="due_date">Deadline</label>
+                    <StyledInput
+                        type="date"
+                        id="due_date"
+                        name="due_date"
+                        defaultValue={task?.due_date ?? ""}
+                    />
+                </FormItemWrapper>
                 <ButtonContainer>
                     <ButtonPrimary
                         text={isEditing ? "Update" : "Create"}
@@ -175,6 +184,7 @@ const StyledInput = styled.input`
     border-radius: 8px;
     border: 1px solid #bdbdbd;
     font-size: 1rem;
+    font-family: inherit;
 `;
 
 const FormItemWrapper = styled.div`
