@@ -37,12 +37,12 @@ export default function TaskCalendar({
                     allDay: true,
                     color: categories.find(
                         (category) => category.id === task.category_id,
-                    )?.color,
+                    )?.color ?? "#232323",
                     className: task.status === "done" ? "task-done" : "",
                 })),
         [tasks, categories],
     );
-
+    
     return (
         <CalendarWrapper>
             <FullCalendar
