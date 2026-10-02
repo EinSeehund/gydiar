@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import { useState, type JSX, type SubmitEvent } from "react";
 
-import { Task } from "@/types/task";
+import { Task, TaskWithChildren } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
@@ -16,10 +16,6 @@ import TaskForm from "../../../components/TaskForm/TaskForm";
 import Modal from "../../../components/Modal/Modal";
 import ProjectForm from "../../../components/ProjectForm/ProjectForm";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
-
-type TaskWithChildren = Task & {
-    children: Task[];
-};
 
 const ProjectPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);

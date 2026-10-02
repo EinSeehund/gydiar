@@ -4,7 +4,7 @@ import { useRouter } from "next/router";
 
 import { useState, type JSX, type SubmitEvent } from "react";
 
-import { Task } from "@/types/task";
+import { TaskWithChildren } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
@@ -15,10 +15,6 @@ import TaskForm from "../../../components/TaskForm/TaskForm";
 import Modal from "../../../components/Modal/Modal";
 import CategoryForm from "../../../components/CategoryForm/CategoryForm";
 import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
-
-type TaskWithChildren = Task & {
-    children: Task[];
-};
 
 const CategoryPage: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);

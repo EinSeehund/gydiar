@@ -5,12 +5,10 @@ import styled from "styled-components";
 import TaskCalendar from "../../components/TaskCalendar/TaskCalendar";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
-import { Task } from "@/types/task";
+import { Task, TaskWithChildren } from "@/types/task";
 import Modal from "../../components/Modal/Modal";
 import TaskForm from "../../components/TaskForm/TaskForm";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-
-type TaskWithChildren = Task & { children: Task[] };
 
 const CalendarPage: NextPage = (): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);

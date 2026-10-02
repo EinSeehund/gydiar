@@ -9,3 +9,13 @@ export type Task = {
     project_id: number | null;
     due_date: string | null;
 };
+
+export type TaskWithChildren = Task & {
+    children: Task[];
+};
+
+export type TaskFormDefaults = {
+    defaultCategory?: number | "";
+    defaultProject?: number | null;
+    defaultDueDate?: string;
+};

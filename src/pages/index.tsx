@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { useState, type JSX, type SubmitEvent } from "react";
 import styled from "styled-components";
-import { Task } from "@/types/task";
+import { TaskWithChildren } from "@/types/task";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
@@ -11,10 +11,6 @@ import TaskList from "../../components/TaskList/TaskList";
 import TaskForm from "../../components/TaskForm/TaskForm";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
-
-type TaskWithChildren = Task & {
-    children: Task[];
-};
 
 const Home: NextPage = ({}): JSX.Element => {
     const [showTaskForm, setShowTaskForm] = useState<boolean>(false);
