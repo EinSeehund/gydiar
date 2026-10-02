@@ -54,7 +54,7 @@ export default function ProjectForm({
                 {project && (
                     <ButtonTertiary
                         type="button"
-                        text="Delete"
+                        text={null}
                         onClick={() => {
                             onDelete(project.id);
                         }}

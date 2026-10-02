@@ -147,7 +147,7 @@ export default function TaskForm({
                 </ButtonContainer>
                 {task && (
                     <ButtonTertiary
-                        text="Delete"
+                        text={null}
                         type="button"
                         onClick={() => handleDelete(task.id)}
                     />
@@ -174,6 +174,10 @@ const StyledForm = styled.form`
     flex-direction: column;
     align-items: flex-start;
     gap: 32px;
+
+    @media screen and (max-width: 600px) {
+     gap: 24px   
+    }
 `;
 
 const ButtonContainer = styled.div`

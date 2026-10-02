@@ -52,7 +52,7 @@ export default function CategoryForm({
                 {category && (
                     <ButtonTertiary
                         type="button"
-                        text="Delete"
+                        text={null}
                         onClick={() => {
                             onDelete(category.id);
                         }}

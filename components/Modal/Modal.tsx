@@ -20,10 +20,15 @@ const Overlay = styled.div`
     top: 0;
     left: 0;
     background: rgba(46, 46, 46, 0.7);
-    z-index: 10;
+    z-index: 12;
     display: flex;
     justify-content: center;
     align-items: center;
+
+    @media screen and (max-width: 600px) {
+        align-items: flex-start;
+        padding-top: 20px;
+    }
 `;
 
 const Container = styled.section`
@@ -34,4 +39,9 @@ const Container = styled.section`
     background-color: var(--background);
     padding: 32px;
     border-radius: 16px;
+
+    @media screen and (max-width: 600px) {
+        width: 95%;
+        padding: 16px;
+    }
 `;

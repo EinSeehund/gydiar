@@ -1,8 +1,9 @@
 import type { ButtonHTMLAttributes, JSX, MouseEventHandler } from "react";
+import { IoTrashOutline } from "react-icons/io5";
 import styled from "styled-components";
 
 type ButtonTertiaryProps = {
-    text: string;
+    text: string | null;
     type: ButtonHTMLAttributes<HTMLButtonElement>["type"];
     onClick?: MouseEventHandler<HTMLButtonElement>;
 };
@@ -13,8 +14,16 @@ export default function ButtonTertiarySmall({
     onClick,
 }: ButtonTertiaryProps): JSX.Element {
     return (
-        <StyledButton type={type} onClick={onClick}>
-            {text}
+        <StyledButton
+            type={type}
+            onClick={onClick}
+            aria-label={text ?? "Delete"}
+        >
+            {text ?? (
+                <TrashIcon>
+                    <IoTrashOutline />
+                </TrashIcon>
+            )}
         </StyledButton>
     );
 }
@@ -30,4 +39,9 @@ const StyledButton = styled.button`
     border: none;
     align-self: flex-end;
     border-radius: 8px;
+`;
+
+const TrashIcon = styled.div`
+    padding-top: 2px;
+    font-size: 0.7rem;
 `;

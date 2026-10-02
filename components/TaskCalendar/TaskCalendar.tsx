@@ -35,14 +35,15 @@ export default function TaskCalendar({
                     title: task.title,
                     start: task.due_date as string,
                     allDay: true,
-                    color: categories.find(
-                        (category) => category.id === task.category_id,
-                    )?.color ?? "#232323",
+                    color:
+                        categories.find(
+                            (category) => category.id === task.category_id,
+                        )?.color ?? "#232323",
                     className: task.status === "done" ? "task-done" : "",
                 })),
         [tasks, categories],
     );
-    
+
     return (
         <CalendarWrapper>
             <FullCalendar
@@ -53,6 +54,7 @@ export default function TaskCalendar({
                     interactionPlugin,
                 ]}
                 initialView="dayGridMonth"
+                headerToolbarClass="task-calendar-toolbar"
                 headerToolbar={{
                     start: "title",
                     end: "today prev,next dayGridDay,dayGridWeek,dayGridMonth,multiMonthYear",
@@ -85,5 +87,30 @@ const CalendarWrapper = styled.div`
     .task-done {
         opacity: 0.5;
         text-decoration: line-through;
+    }
+
+    @media screen and (max-width: 600px) {
+        .task-calendar-toolbar {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 0.5rem;
+        }
+
+        .task-calendar-toolbar > * {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+
+        .task-calendar-toolbar > * > * {
+            display: flex;
+            flex-wrap: wrap;
+            max-width: 100%;
+        }
+
+        .task-calendar-toolbar > *:last-child {
+            justify-content: flex-start;
+        }
     }
 `;
