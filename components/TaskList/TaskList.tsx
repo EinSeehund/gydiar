@@ -1,14 +1,10 @@
-import type { Task } from "@/types/task";
+import type { Task, TaskWithChildren } from "@/types/task";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
 import { useMemo } from "react";
-
-type TaskWithChildren = Task & {
-    children: Task[];
-};
 
 type TaskListProps = {
     taskList: Task[];

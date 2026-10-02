@@ -1,15 +1,11 @@
 import styled from "styled-components";
-import type { Task } from "@/types/task";
+import type { TaskWithChildren } from "@/types/task";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
 import { type SubmitEvent } from "react";
 import SubTaskList from "../SubTaskList/SubTaskList";
 import { formatDueDate, isOverdue } from "@/lib/dates";
 import { isToday, isTomorrow } from "date-fns";
-
-type TaskWithChildren = Task & {
-    children: Task[];
-};
 
 type TaskListItemProps = {
     task: TaskWithChildren;

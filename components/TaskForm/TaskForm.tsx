@@ -1,6 +1,6 @@
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
-import { Task } from "@/types/task";
+import { TaskWithChildren, TaskFormDefaults } from "@/types/task";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
 import SubTaskList from "../SubTaskList/SubTaskList";
@@ -8,17 +8,9 @@ import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
 
-type TaskWithChildren = Task & {
-    children: Task[];
-};
-
 type TaskFormProps = {
     task: TaskWithChildren | null;
-    defaultValues: {
-        defaultCategory?: number | "";
-        defaultProject?: number | null;
-        defaultDueDate?: string;
-    };
+    defaultValues: TaskFormDefaults;
     onSubmit: (event: SubmitEvent<HTMLFormElement>) => void;
     onCancel: () => void;
     onDelete: (id: number) => void;

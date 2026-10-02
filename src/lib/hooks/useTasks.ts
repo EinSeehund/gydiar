@@ -182,3 +182,5 @@ export function useTasks(filter?: TaskFilter) {
         updateTaskStatus,
     };
 }
+
+export type TasksApi = ReturnType<typeof useTasks>;
