@@ -11,6 +11,7 @@ import CategoryForm from "../CategoryForm/CategoryForm";
 import { SubmitEvent } from "react";
 import ProjectForm from "../ProjectForm/ProjectForm";
 import { RiMenuFold3Line } from "react-icons/ri";
+import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
@@ -34,7 +35,7 @@ export default function Navigation() {
 
     const { asPath } = useRouter();
 
-    if (CategoryIsLoading || ProjectIsLoading) return <p>Loading...</p>;
+    if (CategoryIsLoading || ProjectIsLoading) return <LoadingSpinner />;
     if (CategoryError || ProjectError) return <p>Failed to load tasks.</p>;
 
     const categories = CategoryData?.categories;
