@@ -10,10 +10,12 @@ import Modal from "../Modal/Modal";
 import CategoryForm from "../CategoryForm/CategoryForm";
 import { SubmitEvent } from "react";
 import ProjectForm from "../ProjectForm/ProjectForm";
+import { RiMenuFold3Line } from "react-icons/ri";
 
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
     const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
+    const [showNavMobile, setShowNavMobile] = useState<boolean>(false);
 
     const {
         data: CategoryData,
@@ -54,6 +56,9 @@ export default function Navigation() {
     function closeProjectForm() {
         setShowProjectForm(false);
     }
+    function toggleNavMobile() {
+        setShowNavMobile(!showNavMobile);
+    }
 
     async function handleNewCategory(
         event: SubmitEvent<HTMLFormElement>,
@@ -92,12 +97,13 @@ export default function Navigation() {
                     />
                 </Modal>
             )}
-            <NavContainer>
+            <NavContainer $navVisible={showNavMobile}>
                 <NavBar>
                     <Link
                         href="/today"
                         style={linkStyle("/today")}
                         aria-current={asPath === "/today" ? "page" : undefined}
+                        onClick={toggleNavMobile}
                     >
                         Today
                     </Link>
@@ -107,6 +113,7 @@ export default function Navigation() {
                         aria-current={
                             asPath === "/calendar" ? "page" : undefined
                         }
+                        onClick={toggleNavMobile}
                     >
                         Calendar
                     </Link>
@@ -114,6 +121,7 @@ export default function Navigation() {
                         href="/"
                         style={linkStyle("/")}
                         aria-current={asPath === "/" ? "page" : undefined}
+                        onClick={toggleNavMobile}
                     >
                         All Tasks
                     </Link>
@@ -130,6 +138,7 @@ export default function Navigation() {
                                     ? "page"
                                     : undefined
                             }
+                            onClick={toggleNavMobile}
                         >
                             {category.name}
                         </CategoryLink>
@@ -149,6 +158,7 @@ export default function Navigation() {
                                     ? "page"
                                     : undefined
                             }
+                            onClick={toggleNavMobile}
                         >
                             {project.name}
                         </ProjectLink>
@@ -158,11 +168,16 @@ export default function Navigation() {
                     </AddButton>
                 </NavBar>
             </NavContainer>
+            <NavButton onClick={toggleNavMobile}>
+                <ButtonIcon $navVisible={showNavMobile}>
+                    <RiMenuFold3Line />
+                </ButtonIcon>
+            </NavButton>
         </>
     );
 }
 
-const NavContainer = styled.div`
+const NavContainer = styled.div<{ $navVisible: boolean }>`
     height: 100vh;
     position: fixed;
     left: 0;
@@ -171,9 +186,13 @@ const NavContainer = styled.div`
     padding-top: 30px;
     background-color: var(--background);
     border-right: 1px solid gray;
+    z-index: 11;
 
     @media screen and (max-width: 600px) {
-        display: none;
+        position: fixed;
+        overflow-y: scroll;
+        left: ${({ $navVisible }) => ($navVisible ? "0px" : "-250px")};
+        transition: left 0.5s;
     }
 `;
 
@@ -205,4 +224,35 @@ const AddButton = styled.button`
 
 const ProjectLink = styled(Link)`
     font-style: italic;
+`;
+
+const NavButton = styled.button`
+    background-color: var(--foreground);
+    color: var(--background);
+    font-size: 2.2rem;
+    position: fixed;
+    bottom: 50px;
+    right: 50px;
+    border: none;
+    border-radius: 50%;
+    height: 50px;
+    width: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9;
+
+    @media screen and (min-width: 600px) {
+        display: none;
+    }
+`;
+
+const ButtonIcon = styled.div<{ $navVisible: boolean }>`
+    font-size: 1.6rem;
+    line-height: 0;
+    transition: transform 0.2s ease;
+    transform: rotate(
+        ${({ $navVisible }) => ($navVisible ? "0deg" : "180deg")}
+    );
+    transform-origin: 50% 50%;
 `;

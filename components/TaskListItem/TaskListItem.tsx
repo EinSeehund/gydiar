@@ -54,16 +54,18 @@ export default function TaskListItem({
                     aria-label={`Mark ${task.title} as done`}
                 />
 
-                <button
-                    onClick={() => {
-                        onTitleClick(task);
-                    }}
-                >
-                    {task.title}
-                </button>
-                {project && projectVisible && (
-                    <ProjectTag>({project.name})</ProjectTag>
-                )}
+                <TitleAndProject>
+                    <button
+                        onClick={() => {
+                            onTitleClick(task);
+                        }}
+                    >
+                        {task.title}
+                    </button>
+                    {project && projectVisible && (
+                        <ProjectTag>({project.name})</ProjectTag>
+                    )}
+                </TitleAndProject>
                 {category && categoryVisible && (
                     <CategoryTag $color={category.color}>
                         {category.name}
@@ -115,9 +117,14 @@ const TitleWrapper = styled.div`
         &:hover {
             cursor: pointer;
         }
+
+        @media screen and (max-width: 992px) {
+            align-self: flex-start;
+            margin-top: 3px;
+        }
     }
 
-    > button {
+    button {
         background: none;
         border: none;
         font-size: 1rem;
@@ -129,16 +136,29 @@ const TitleWrapper = styled.div`
     }
 `;
 
+const TitleAndProject = styled.div`
+    display: flex;
+
+    @media screen and (max-width: 992px) {
+        flex-direction: column;
+    }
+`;
+
 const ProjectTag = styled.span`
     font-size: small;
     padding-top: 3px;
     margin-left: 12px;
     font-style: italic;
+
+    @media screen and (max-width: 992px) {
+        margin-left: 0;
+    }
 `;
 
 const CategoryTag = styled.span<{ $color: string }>`
     display: flex;
     align-items: center;
+    align-self: flex-start;
     margin-left: auto;
     padding-right: 4px;
     padding-left: 16px;

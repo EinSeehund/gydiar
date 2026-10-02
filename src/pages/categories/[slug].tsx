@@ -247,7 +247,15 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
 export default CategoryPage;
 
 const Container = styled.div`
-    padding: 64px;
+    padding: 30px 64px;
+
+    @media screen and (max-width: 600px) {
+        padding: 20px;
+    }
+
+    @media screen and (min-width: 601px) and (max-width: 992px) {
+        padding: 30px 30px 0 0;
+    }
 `;
 
 const CategoryTitleContainer = styled.div`

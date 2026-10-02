@@ -189,7 +189,15 @@ const TodayPage: NextPage = ({}): JSX.Element => {
 export default TodayPage;
 
 const Container = styled.div`
-    padding: 64px;
+    padding: 30px 64px;
+
+    @media screen and (max-width: 600px) {
+        padding: 20px;
+    }
+
+    @media screen and (min-width: 601px) and (max-width: 992px) {
+        padding: 30px 30px 0 0;
+    }
 `;
 
 const ButtonWrapper = styled.p`
@@ -198,4 +206,5 @@ const ButtonWrapper = styled.p`
 
 const StyledPageTitle = styled.h2`
     margin-bottom: 32px;
+    padding-left: 28px;
 `;

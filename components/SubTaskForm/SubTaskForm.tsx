@@ -62,7 +62,7 @@ export default function SubTaskForm({
                 </ButtonContainer>
                 {task && (
                     <ButtonTertiarySmall
-                        text="Delete"
+                        text={null}
                         type="button"
                         onClick={() => onDelete(task.id)}
                     />
