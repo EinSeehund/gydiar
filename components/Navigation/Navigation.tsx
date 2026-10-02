@@ -95,11 +95,11 @@ export default function Navigation() {
             <NavContainer>
                 <NavBar>
                     <Link
-                        href="/"
-                        style={linkStyle("/")}
-                        aria-current={asPath === "/" ? "page" : undefined}
+                        href="/today"
+                        style={linkStyle("/today")}
+                        aria-current={asPath === "/today" ? "page" : undefined}
                     >
-                        All Tasks
+                        Today
                     </Link>
                     <Link
                         href="/calendar"
@@ -109,6 +109,13 @@ export default function Navigation() {
                         }
                     >
                         Calendar
+                    </Link>
+                    <Link
+                        href="/"
+                        style={linkStyle("/")}
+                        aria-current={asPath === "/" ? "page" : undefined}
+                    >
+                        All Tasks
                     </Link>
                     <hr />
                     <h3>Categories</h3>
