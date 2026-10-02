@@ -14,6 +14,7 @@ import TaskList from "../../../components/TaskList/TaskList";
 import TaskForm from "../../../components/TaskForm/TaskForm";
 import Modal from "../../../components/Modal/Modal";
 import CategoryForm from "../../../components/CategoryForm/CategoryForm";
+import LoadingSpinner from "../../../components/LoadingSpinner/LoadingSpinner";
 
 type TaskWithChildren = Task & {
     children: Task[];
@@ -58,7 +59,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
     } = useProjects();
 
     if (TasksIsLoading || CategoriesIsLoading || ProjectsIsLoading)
-        return <p>Loading...</p>;
+        return <LoadingSpinner />;
     if (TasksError || CategoriesError || ProjectsError)
         return <p>Failed to load tasks.</p>;
 

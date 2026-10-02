@@ -8,6 +8,7 @@ import { useCategories } from "@/lib/hooks/useCategories";
 import { Task } from "@/types/task";
 import Modal from "../../components/Modal/Modal";
 import TaskForm from "../../components/TaskForm/TaskForm";
+import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 
 type TaskWithChildren = Task & { children: Task[] };
 
@@ -37,7 +38,7 @@ const CalendarPage: NextPage = (): JSX.Element => {
         isLoading: categoriesIsLoading,
     } = useCategories();
 
-    if (tasksIsLoading || categoriesIsLoading) return <p>Loading...</p>;
+    if (tasksIsLoading || categoriesIsLoading) return <LoadingSpinner />;
     if (tasksError || categoriesError) return <p>Failed to load tasks.</p>;
 
     const tasksInDb = tasksFetch?.tasks ?? [];
