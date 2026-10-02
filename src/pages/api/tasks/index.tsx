@@ -41,7 +41,7 @@ export default async function handler(
                         parent_task_id, category_id, project_id,
                         due_date::text AS due_date
                     FROM visible_tasks
-                    ORDER BY created_at DESC`,
+                    ORDER BY due_date DESC`,
                     [dueDate],
                 );
             } else if (category) {
