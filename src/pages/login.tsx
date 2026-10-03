@@ -52,6 +52,7 @@ export default function LoginPage() {
             </button>
 
             <p>Noch kein Konto? <Link href="/register">Registrieren</Link></p>
+            <Link href="/forgot-password">Passwort vergessen?</Link>
         </main>
     );
 }
