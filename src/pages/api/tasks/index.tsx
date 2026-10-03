@@ -2,21 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { parseDueDate } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
-
-// Prüft, ob eine referenzierte Zeile dem eingeloggten Nutzer gehört.
-// Der Tabellenname wird direkt ins SQL eingesetzt, deshalb erlaubt der Typ nur diese drei Werte.
-async function ownsRow(
-    table: "tasks" | "categories" | "projects",
-    id: unknown,
-    userId: string,
-) {
-    if (id === null || id === undefined) return true; // Feld ist optional
-    const result = await pool.query(
-        `SELECT 1 FROM ${table} WHERE id = $1 AND user_id = $2`,
-        [id, userId],
-    );
-    return result.rowCount === 1;
-}
+import { ownsRow } from "@/lib/db-helpers";
 
 export default async function handler(
     req: NextApiRequest,
