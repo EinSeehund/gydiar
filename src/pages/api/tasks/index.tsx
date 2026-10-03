@@ -1,23 +1,50 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { parseDueDate } from "@/lib/validation";
+import { requireUser } from "@/lib/session";
+
+// Prüft, ob eine referenzierte Zeile dem eingeloggten Nutzer gehört.
+// Der Tabellenname wird direkt ins SQL eingesetzt, deshalb erlaubt der Typ nur diese drei Werte.
+async function ownsRow(
+    table: "tasks" | "categories" | "projects",
+    id: unknown,
+    userId: string,
+) {
+    if (id === null || id === undefined) return true; // Feld ist optional
+    const result = await pool.query(
+        `SELECT 1 FROM ${table} WHERE id = $1 AND user_id = $2`,
+        [id, userId],
+    );
+    return result.rowCount === 1;
+}
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
     if (req.method === "GET") {
         const { category, project, due } = req.query;
 
-        if (Array.isArray(category) || Array.isArray(due)) {
-            return res.status(400).json({ error: "Invalid query parameter" });
+        if (
+            Array.isArray(category) ||
+            Array.isArray(project) ||
+            Array.isArray(due)
+        ) {
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid query parameter" });
         }
 
         let dueDate: string | null | undefined;
         try {
             dueDate = parseDueDate(due);
         } catch {
-            return res.status(400).json({ success: false, error: "Invalid due date" });
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid due date" });
         }
 
         try {
@@ -25,10 +52,13 @@ export default async function handler(
             if (dueDate) {
                 result = await pool.query(
                     `WITH due_tasks AS (
-                        SELECT * FROM tasks 
-                        WHERE due_date = $1
-                        OR (due_date < $1 AND status = 'open')
-                        OR (updated_at::date = NOW()::date AND status = 'done')
+                        SELECT * FROM tasks
+                        WHERE user_id = $2
+                        AND (
+                            due_date = $1
+                            OR (due_date < $1 AND status = 'open')
+                            OR (updated_at::date = NOW()::date AND status = 'done')
+                        )
                     ),
                     visible_tasks AS (
                         SELECT * FROM due_tasks
@@ -36,13 +66,14 @@ export default async function handler(
                         SELECT child.*
                         FROM tasks child
                         JOIN due_tasks parent ON child.parent_task_id = parent.id
+                        WHERE child.user_id = $2
                     )
                     SELECT id, title, created_at, updated_at, status,
                         parent_task_id, category_id, project_id,
                         due_date::text AS due_date
                     FROM visible_tasks
                     ORDER BY due_date DESC`,
-                    [dueDate],
+                    [dueDate, user.id],
                 );
             } else if (category) {
                 result = await pool.query(
@@ -50,107 +81,108 @@ export default async function handler(
                         SELECT t.*
                         FROM tasks t
                         JOIN categories c ON c.id = t.category_id
-                        WHERE c.slug = $1
+                        WHERE c.slug = $1 AND c.user_id = $2 AND t.user_id = $2
                     ),
                     visible_tasks AS (
                         SELECT * FROM category_tasks
                         UNION
                         SELECT child.*
                         FROM tasks child
-                        JOIN category_tasks parent
-                            ON child.parent_task_id = parent.id
+                        JOIN category_tasks parent ON child.parent_task_id = parent.id
+                        WHERE child.user_id = $2
                     )
-                    SELECT
-                        id,
-                        title,
-                        created_at,
-                        updated_at,
-                        status,
-                        parent_task_id,
-                        category_id,
-                        project_id,
+                    SELECT id, title, created_at, updated_at, status,
+                        parent_task_id, category_id, project_id,
                         due_date::text AS due_date
                     FROM visible_tasks
                     ORDER BY due_date ASC NULLS LAST, created_at DESC`,
-                    [category],
+                    [category, user.id],
                 );
             } else if (project) {
+                // identisch zu category, nur mit projects
                 result = await pool.query(
                     `WITH project_tasks AS (
                         SELECT t.*
                         FROM tasks t
                         JOIN projects p ON p.id = t.project_id
-                        WHERE p.slug = $1
+                        WHERE p.slug = $1 AND p.user_id = $2 AND t.user_id = $2
                     ),
                     visible_tasks AS (
                         SELECT * FROM project_tasks
                         UNION
                         SELECT child.*
                         FROM tasks child
-                        JOIN project_tasks parent
-                            ON child.parent_task_id = parent.id
+                        JOIN project_tasks parent ON child.parent_task_id = parent.id
+                        WHERE child.user_id = $2
                     )
-                    SELECT
-                        id,
-                        title,
-                        created_at,
-                        updated_at,
-                        status,
-                        parent_task_id,
-                        category_id,
-                        project_id,
+                    SELECT id, title, created_at, updated_at, status,
+                        parent_task_id, category_id, project_id,
                         due_date::text AS due_date
                     FROM visible_tasks
                     ORDER BY due_date ASC NULLS LAST, created_at DESC`,
-                    [project],
+                    [project, user.id],
                 );
             } else {
-                result = await pool.query(`
-                    SELECT 
-                    id, 
-                    title, 
-                    created_at, 
-                    updated_at, 
-                    status, 
-                    parent_task_id, 
-                    category_id, 
-                    project_id, 
-                    due_date::text AS due_date 
-                    FROM tasks 
-                    ORDER BY due_date ASC NULLS LAST, created_at DESC
-                    `);
+                result = await pool.query(
+                    `SELECT id, title, created_at, updated_at, status,
+                        parent_task_id, category_id, project_id,
+                        due_date::text AS due_date
+                    FROM tasks
+                    WHERE user_id = $1
+                    ORDER BY due_date ASC NULLS LAST, created_at DESC`,
+                    [user.id],
+                );
             }
-            res.status(200).json({ success: true, tasks: result.rows });
+            return res.status(200).json({ success: true, tasks: result.rows });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal Server Error" });
         }
     } else if (req.method === "POST") {
         try {
             const due_date = parseDueDate(req.body.due_date) ?? null;
+            const parent_task_id = req.body.parent_task_id ?? null;
+            const category_id = req.body.category_id ?? null;
+            const project_id = req.body.project_id ?? null;
+
+            const checks = await Promise.all([
+                ownsRow("tasks", parent_task_id, user.id),
+                ownsRow("categories", category_id, user.id),
+                ownsRow("projects", project_id, user.id),
+            ]);
+            if (checks.includes(false)) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "Invalid reference" });
+            }
 
             await pool.query(
-                `
-                INSERT INTO "public"."tasks" ("title", "parent_task_id", "category_id", "project_id", "due_date")
-                VALUES ($1, $2, $3, $4, $5)
-            `,
+                `INSERT INTO "public"."tasks"
+                    ("title", "parent_task_id", "category_id", "project_id", "due_date", "user_id")
+                VALUES ($1, $2, $3, $4, $5, $6)`,
                 [
                     req.body.taskTitle,
-                    req.body.parent_task_id,
-                    req.body.category_id,
-                    req.body.project_id,
+                    parent_task_id,
+                    category_id,
+                    project_id,
                     due_date,
+                    user.id,
                 ],
             );
-            res.status(200).json({
-                success: true,
-                message: "Task successfully created",
-            });
+            return res
+                .status(200)
+                .json({ success: true, message: "Task successfully created" });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal Server Error" });
         }
     } else {
-        res.status(405).json({ success: false, error: "Method Not Allowed" });
+        return res
+            .status(405)
+            .json({ success: false, error: "Method Not Allowed" });
     }
 }
