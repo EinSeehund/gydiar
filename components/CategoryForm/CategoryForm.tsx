@@ -42,6 +42,7 @@ export default function CategoryForm({
                     <ButtonPrimary
                         text={category ? "Update" : "Add"}
                         type="submit"
+                        disabled={false}
                     />
                     <ButtonSecondary
                         text="Cancel"

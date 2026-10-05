@@ -44,6 +44,7 @@ export default function ProjectForm({
                     <ButtonPrimary
                         text={project ? "Update" : "Add"}
                         type="submit"
+                        disabled={false}
                     />
                     <ButtonSecondary
                         text="Cancel"

@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import { JSX} from "react";
+import { JSX } from "react";
 import styled from "styled-components";
 import { format } from "date-fns";
 import { useTasks } from "@/lib/hooks/useTasks";
@@ -13,7 +13,6 @@ import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 
 const TodayPage: NextPage = ({}): JSX.Element => {
-
     const today = format(new Date(), "yyyy-MM-dd");
 
     const tasksApi = useTasks({ due: today });
@@ -27,13 +26,13 @@ const TodayPage: NextPage = ({}): JSX.Element => {
     const editor = useTaskEditor(tasksApi);
 
     const {
-    openNewTaskForm,
-    openEditTaskForm,
-    handleNewSubTask,
-    handleUpdateTask,
-    handleDeleteTask,
-    handleUpdateTaskStatus,
-} = editor;
+        openNewTaskForm,
+        openEditTaskForm,
+        handleNewSubTask,
+        handleUpdateTask,
+        handleDeleteTask,
+        handleUpdateTaskStatus,
+    } = editor;
 
     const {
         data: CategoriesFetch,
@@ -63,7 +62,10 @@ const TodayPage: NextPage = ({}): JSX.Element => {
                 <meta name="description" content="Get Your Ducks In A Row!" />
                 <link rel="icon" href="/favicon.png" />
             </Head>
-            <TaskEditorModal editor={editor} defaultValues={{ defaultDueDate: today }} />
+            <TaskEditorModal
+                editor={editor}
+                defaultValues={{ defaultDueDate: today }}
+            />
             <main>
                 <Container>
                     <StyledPageTitle>Today</StyledPageTitle>
@@ -86,6 +88,7 @@ const TodayPage: NextPage = ({}): JSX.Element => {
                             onClick={() => {
                                 openNewTaskForm();
                             }}
+                            disabled={false}
                         />
                     </ButtonWrapper>
                 </Container>

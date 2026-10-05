@@ -130,6 +130,7 @@ export default function TaskForm({
                     <ButtonPrimary
                         text={isEditing ? "Update" : "Create"}
                         type="submit"
+                        disabled={false}
                     />
                     <ButtonSecondary
                         text="Cancel"
