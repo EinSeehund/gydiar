@@ -14,7 +14,11 @@ import { RiMenuFold3Line } from "react-icons/ri";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 import LogoutButton from "../LogoutButton/LogoutButton";
 
-export default function Navigation() {
+type NavigationProps = {
+    userName: string;
+};
+
+export default function Navigation({ userName }: NavigationProps) {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
     const [showProjectForm, setShowProjectForm] = useState<boolean>(false);
     const [showNavMobile, setShowNavMobile] = useState<boolean>(false);
@@ -169,7 +173,12 @@ export default function Navigation() {
                         + New Project
                     </AddButton>
                 </NavBar>
-            <LogoutButton />
+                <UserContainer>
+                    <p>
+                        Logged in as <b>{userName}</b>
+                    </p>
+                    <LogoutButton />
+                </UserContainer>
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
                 <ButtonIcon $navVisible={showNavMobile}>
@@ -183,17 +192,21 @@ export default function Navigation() {
 const NavContainer = styled.div<{ $navVisible: boolean }>`
     height: 100vh;
     position: fixed;
+    top: 0;
     left: 0;
     width: 250px;
     padding: 40px;
     padding-top: 30px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     background-color: var(--background);
     border-right: 1px solid gray;
     z-index: 11;
 
     @media screen and (max-width: 600px) {
         position: fixed;
-        overflow-y: scroll;
         left: ${({ $navVisible }) => ($navVisible ? "0px" : "-250px")};
         transition: left 0.5s;
     }
@@ -203,6 +216,10 @@ const NavBar = styled.nav`
     display: flex;
     flex-direction: column;
     gap: 16px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 32px;
 
     & a[aria-current="page"]::after {
         content: "→";
@@ -258,4 +275,23 @@ const ButtonIcon = styled.div<{ $navVisible: boolean }>`
         ${({ $navVisible }) => ($navVisible ? "0deg" : "180deg")}
     );
     transform-origin: 50% 50%;
+`;
+
+const UserContainer = styled.div`
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    background-color: var(--background);
+    color: var(--foreground);
+    border-top: 1px dotted black;
+    width: 100%;
+    padding-top: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-size: small;
+
+    b {
+        font-size: medium;
+    }
 `;
