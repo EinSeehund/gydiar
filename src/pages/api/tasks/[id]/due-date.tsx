@@ -1,11 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
+import { requireUser } from "@/lib/session";
 import { parseDueDate } from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
     if (req.method !== "PATCH") {
         return res
             .status(405)
@@ -13,6 +17,9 @@ export default async function handler(
     }
 
     const { id } = req.query;
+    if (typeof id !== "string") {
+        return res.status(400).json({ success: false, error: "Invalid id" });
+    }
 
     let dueDate: string | null | undefined;
 
@@ -25,15 +32,17 @@ export default async function handler(
     }
 
     if (dueDate === undefined) {
-        res.status(400).json({ success: false, error: "due_date is required" });
+        return res
+            .status(400)
+            .json({ success: false, error: "due_date is required" });
     }
 
     try {
         const result = await pool.query(
             `UPDATE "public"."tasks"
             SET "due_date" = $1
-            WHERE "id" = $2`,
-            [dueDate, id],
+            WHERE "id" = $2 AND "user_id" = $3`,
+            [dueDate, id, user.id],
         );
 
         if (result.rowCount === 0) {
@@ -42,11 +51,14 @@ export default async function handler(
                 .json({ success: false, error: "Task not found" });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             success: true,
             message: "Due date successfully updated",
         });
     } catch (error) {
-        res.status(500).json({ success: false, error: String(error) });
+        console.error("DB error:", error);
+        return res
+            .status(500)
+            .json({ success: false, error: "Internal server error" });
     }
 }

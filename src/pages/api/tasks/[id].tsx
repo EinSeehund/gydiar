@@ -1,11 +1,20 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
+import { requireUser } from "@/lib/session";
+import { ownsRow } from "@/lib/db-helpers";
+import { parseDueDate } from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
     const { id } = req.query;
+    if (typeof id !== "string") {
+        return res.status(400).json({ success: false, error: "Invalid id" });
+    }
 
     if (req.method === "PUT") {
         const rawTitle = req.body?.taskTitle;
@@ -19,19 +28,35 @@ export default async function handler(
 
         const title = rawTitle.trim();
 
+        let dueDate: string | null;
         try {
+            dueDate = parseDueDate(req.body.due_date) ?? null;
+        } catch {
+            return res
+                .status(400)
+                .json({ success: false, error: "Invalid due date" });
+        }
+
+        const category_id = req.body.category_id ?? null;
+        const project_id = req.body.project_id ?? null;
+
+        try {
+            const checks = await Promise.all([
+                ownsRow("categories", category_id, user.id),
+                ownsRow("projects", project_id, user.id),
+            ]);
+            if (checks.includes(false)) {
+                return res
+                    .status(400)
+                    .json({ success: false, error: "Invalid reference" });
+            }
+
             const result = await pool.query(
                 `
                 UPDATE "public"."tasks"
                 SET "title" = $1, "category_id" = $2, "project_id" = $3, "due_date" = $4
-                WHERE "id" = $5`,
-                [
-                    title,
-                    req.body.category_id,
-                    req.body.project_id,
-                    req.body.due_date,
-                    id,
-                ],
+                WHERE "id" = $5 AND "user_id" = $6`,
+                [title, category_id, project_id, dueDate, id, user.id],
             );
 
             if (result.rowCount === 0) {
@@ -41,13 +66,15 @@ export default async function handler(
                 });
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Task successfully updated",
             });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal server error" });
         }
     } else if (req.method === "PATCH") {
         const newStatus = req.body;
@@ -64,9 +91,9 @@ export default async function handler(
                 `
                 UPDATE "public"."tasks"
                 SET "status" = $1
-                WHERE "id" = $2
+                WHERE "id" = $2 AND "user_id" = $3
                 `,
-                [newStatus, id],
+                [newStatus, id, user.id],
             );
 
             if (result.rowCount === 0) {
@@ -76,21 +103,23 @@ export default async function handler(
                 });
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Task successfully updated",
             });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal server error" });
         }
     } else if (req.method === "DELETE") {
         try {
             const result = await pool.query(
                 `
                 DELETE FROM "public"."tasks"
-                WHERE "id" = $1`,
-                [id],
+                WHERE "id" = $1 AND "user_id" = $2`,
+                [id, user.id],
             );
 
             if (result.rowCount === 0) {
@@ -100,15 +129,19 @@ export default async function handler(
                 });
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Task successfully deleted",
             });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal server error" });
         }
     } else {
-        res.status(405).json({ success: false, error: "Method Not Allowed" });
+        return res
+            .status(405)
+            .json({ success: false, error: "Method Not Allowed" });
     }
 }

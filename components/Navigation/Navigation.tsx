@@ -12,6 +12,7 @@ import { SubmitEvent } from "react";
 import ProjectForm from "../ProjectForm/ProjectForm";
 import { RiMenuFold3Line } from "react-icons/ri";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
+import LogoutButton from "../LogoutButton/LogoutButton";
 
 export default function Navigation() {
     const [showCategoryForm, setShowCategoryForm] = useState<boolean>(false);
@@ -168,6 +169,7 @@ export default function Navigation() {
                         + New Project
                     </AddButton>
                 </NavBar>
+            <LogoutButton />
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
                 <ButtonIcon $navVisible={showNavMobile}>

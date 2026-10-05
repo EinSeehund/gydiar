@@ -1,11 +1,18 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
+import { requireUser } from "@/lib/session";
 
 export default async function handler(
     req: NextApiRequest,
     res: NextApiResponse,
 ) {
+    const user = await requireUser(req, res);
+    if (!user) return;
+
     const { id } = req.query;
+    if (typeof id !== "string") {
+        return res.status(400).json({ success: false, error: "Invalid id" });
+    }
 
     if (req.method === "PUT") {
         const rawName = req.body?.name;
@@ -24,8 +31,8 @@ export default async function handler(
                 `
                 UPDATE "public"."categories"
                 SET "name" = $1, "color" = $2
-                WHERE "id" = $3`,
-                [name, req.body.color, id],
+                WHERE "id" = $3 AND "user_id" = $4`,
+                [name, req.body.color, id, user.id],
             );
 
             if (result.rowCount === 0) {
@@ -35,21 +42,23 @@ export default async function handler(
                 });
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Category successfully updated",
             });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal server error" });
         }
     } else if (req.method === "DELETE") {
         try {
             const result = await pool.query(
                 `
                 DELETE FROM "public"."categories"
-                WHERE "id" = $1`,
-                [id],
+                WHERE "id" = $1 AND "user_id" = $2`,
+                [id, user.id],
             );
 
             if (result.rowCount === 0) {
@@ -59,15 +68,19 @@ export default async function handler(
                 });
             }
 
-            res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: "Category successfully deleted",
             });
         } catch (error) {
-            console.error("DB connection error:", error);
-            res.status(500).json({ success: false, error: String(error) });
+            console.error("DB error:", error);
+            return res
+                .status(500)
+                .json({ success: false, error: "Internal server error" });
         }
     } else {
-        res.status(405).json({ success: false, error: "Method Not Allowed" });
+        return res
+            .status(405)
+            .json({ success: false, error: "Method Not Allowed" });
     }
 }
