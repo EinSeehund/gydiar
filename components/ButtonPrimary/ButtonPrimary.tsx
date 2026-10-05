@@ -5,15 +5,17 @@ type ButtonPrimaryProps = {
     text: string;
     type: ButtonHTMLAttributes<HTMLButtonElement>["type"];
     onClick?: MouseEventHandler<HTMLButtonElement>;
+    disabled: boolean;
 };
 
 export default function ButtonPrimary({
     text,
     type,
     onClick,
+    disabled,
 }: ButtonPrimaryProps): JSX.Element {
     return (
-        <StyledButton type={type} onClick={onClick}>
+        <StyledButton type={type} onClick={onClick} disabled={disabled}>
             {text}
         </StyledButton>
     );

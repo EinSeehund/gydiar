@@ -146,6 +146,7 @@ const CategoryPage: NextPage = ({}): JSX.Element => {
                             onClick={() => {
                                 openNewTaskForm();
                             }}
+                            disabled={false}
                         />
                     </ButtonWrapper>
                 </Container>

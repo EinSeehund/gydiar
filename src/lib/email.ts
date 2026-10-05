@@ -1,18 +1,38 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const FROM = process.env.EMAIL_FROM ?? "Gydiar <onboarding@resend.dev>";
 
-export async function sendEmail(to: string, subject: string, html: string) {
-  const { error } = await resend.emails.send({ from: FROM, to, subject, html });
-  if (error) {
-    console.error("E-Mail konnte nicht gesendet werden:", error);
-    throw new Error("E-Mail-Versand fehlgeschlagen");
-  }
+let resend: Resend | null = null;
+
+function getResend() {
+    if (!resend) {
+        const apiKey = process.env.RESEND_API_KEY;
+        if (!apiKey) throw new Error("RESEND_API_KEY ist nicht gesetzt");
+        resend = new Resend(apiKey);
+    }
+    return resend;
 }
 
-export function actionEmail(heading: string, text: string, url: string, label: string) {
-  return `
+export async function sendEmail(to: string, subject: string, html: string) {
+    const { error } = await getResend().emails.send({
+        from: FROM,
+        to,
+        subject,
+        html,
+    });
+    if (error) {
+        console.error("E-Mail konnte nicht gesendet werden:", error);
+        throw new Error("E-Mail-Versand fehlgeschlagen");
+    }
+}
+
+export function actionEmail(
+    heading: string,
+    text: string,
+    url: string,
+    label: string,
+) {
+    return `
     <div style="font-family:sans-serif;max-width:480px;margin:auto">
       <h2>${heading}</h2>
       <p>${text}</p>
