@@ -9,6 +9,7 @@ import {
     GithubLoginButton,
     GoogleLoginButton,
 } from "react-social-login-buttons";
+import Head from "next/head";
 
 export const getServerSideProps = redirectIfAuthenticated;
 
@@ -40,76 +41,94 @@ export default function RegisterPage() {
 
     if (sent) {
         return (
-            <p>
-                Fast geschafft! Wir haben dir eine E-Mail zur Bestätigung
-                geschickt.
-            </p>
+            <>
+                <Head>
+                    <title>GYDIAR! - Sign up</title>
+                    <meta
+                        name="description"
+                        content="Get Your Ducks In A Row!"
+                    />
+                    <link rel="icon" href="/favicon.png" />
+                </Head>
+                <p>
+                    Fast geschafft! Wir haben dir eine E-Mail zur Bestätigung
+                    geschickt.
+                </p>
+            </>
         );
     }
 
     return (
-        <StyledMain>
-            <Wrapper>
-                <BigDuck>🦆</BigDuck>
-                <h1>Sign up</h1>
-                <StyledForm onSubmit={handleSubmit}>
-                    <StyledInput name="name" placeholder="Name" required />
-                    <StyledInput
-                        name="email"
-                        type="email"
-                        placeholder="E-Mail"
-                        required
+        <>
+            <Head>
+                <title>GYDIAR! - Sign up</title>
+                <meta name="description" content="Get Your Ducks In A Row!" />
+                <link rel="icon" href="/favicon.png" />
+            </Head>
+            <StyledMain>
+                <Wrapper>
+                    <BigDuck>🦆</BigDuck>
+                    <h1>Sign up</h1>
+                    <StyledForm onSubmit={handleSubmit}>
+                        <StyledInput name="name" placeholder="Name" required />
+                        <StyledInput
+                            name="email"
+                            type="email"
+                            placeholder="E-Mail"
+                            required
+                        />
+                        <StyledInput
+                            name="password"
+                            type="password"
+                            placeholder="Password (8 characters minimum)"
+                            minLength={8}
+                            required
+                        />
+                        <ButtonPrimary
+                            type="submit"
+                            disabled={loading}
+                            text={loading ? "Please wait..." : "Sign up"}
+                        />
+                        {error && <p role="alert">{error}</p>}
+                    </StyledForm>
+                    <p>
+                        Already have an account?{" "}
+                        <Link href="/login"> Login here</Link>
+                    </p>
+                    <StyledHr />
+                    <GithubLoginButton
+                        onClick={() =>
+                            authClient.signIn.social({
+                                provider: "github",
+                                callbackURL: "/",
+                            })
+                        }
+                        style={{
+                            padding: "4px 8px",
+                            fontSize: "1rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                        }}
                     />
-                    <StyledInput
-                        name="password"
-                        type="password"
-                        placeholder="Password (8 characters minimum)"
-                        minLength={8}
-                        required
+                    <GoogleLoginButton
+                        onClick={() =>
+                            authClient.signIn.social({
+                                provider: "google",
+                                callbackURL: "/",
+                            })
+                        }
+                        style={{
+                            padding: "4px 8px",
+                            fontSize: "1rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                        }}
                     />
-                    <ButtonPrimary
-                        type="submit"
-                        disabled={loading}
-                        text={loading ? "Please wait..." : "Sign up"}
-                    />
-                    {error && <p role="alert">{error}</p>}
-                </StyledForm>
-                <p>
-                    Already have an account? <Link href="/login"> Login here</Link>
-                </p>
-                <StyledHr />
-                <GithubLoginButton
-                    onClick={() =>
-                        authClient.signIn.social({
-                            provider: "github",
-                            callbackURL: "/",
-                        })
-                    }
-                    style={{
-                        padding: "4px 8px",
-                        fontSize: "1rem",
-                        display: "flex",
-                        justifyContent: "center",
-                        borderRadius: "8px",
-                    }}
-                />
-                <GoogleLoginButton
-                    onClick={() =>
-                        authClient.signIn.social({
-                            provider: "google",
-                            callbackURL: "/",
-                        })
-                    }
-                    style={{
-                        padding: "4px 8px",
-                        fontSize: "1rem",
-                        display: "flex",
-                        justifyContent: "center",
-                        borderRadius: "8px",
-                    }}
-                />
-            </Wrapper>
-        </StyledMain>
+                </Wrapper>
+            </StyledMain>
+        </>
     );
 }
 

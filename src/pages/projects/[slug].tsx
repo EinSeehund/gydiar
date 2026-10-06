@@ -112,7 +112,7 @@ const ProjectPage: NextPage = ({}): JSX.Element => {
     return (
         <>
             <Head>
-                <title>GYDIAR! - Tasks</title>
+                <title>GYDIAR! - {currentProject.name}</title>
                 <meta name="description" content="Get Your Ducks In A Row!" />
                 <link rel="icon" href="/favicon.png" />
             </Head>

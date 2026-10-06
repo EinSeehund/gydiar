@@ -58,7 +58,7 @@ const TodayPage: NextPage = ({}): JSX.Element => {
     return (
         <>
             <Head>
-                <title>GYDIAR! - Tasks</title>
+                <title>GYDIAR! - Today</title>
                 <meta name="description" content="Get Your Ducks In A Row!" />
                 <link rel="icon" href="/favicon.png" />
             </Head>
