@@ -5,6 +5,6 @@ export function formatDueDate(dueDate: string): string {
 }
 
 export function isOverdue(dueDate: string | null, status: string): boolean {
-    if (!dueDate || status === "done") return false; // an deine Status-Werte anpassen!
+    if (!dueDate || status === "done") return false; 
     return isBefore(parseISO(dueDate), startOfToday());
 }

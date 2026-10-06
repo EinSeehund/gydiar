@@ -9,7 +9,6 @@ export default function ResetPasswordPage() {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    // Im Pages Router ist router.query beim ersten Render leer, deshalb isReady abwarten
     if (!router.isReady) return null;
 
     const token = typeof router.query.token === "string" ? router.query.token : null;
