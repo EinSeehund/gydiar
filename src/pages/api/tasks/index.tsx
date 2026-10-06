@@ -12,12 +12,14 @@ export default async function handler(
     if (!user) return;
 
     if (req.method === "GET") {
-        const { category, project, due } = req.query;
+        const { category, project, due, from, to } = req.query;
 
         if (
             Array.isArray(category) ||
             Array.isArray(project) ||
-            Array.isArray(due)
+            Array.isArray(due) ||
+            Array.isArray(from) ||
+            Array.isArray(to)
         ) {
             return res
                 .status(400)
@@ -31,6 +33,23 @@ export default async function handler(
             return res
                 .status(400)
                 .json({ success: false, error: "Invalid due date" });
+        }
+
+        let fromDate: string | null | undefined;
+        let toDate: string | null | undefined;
+        try {
+            fromDate = parseDueDate(from);
+            toDate = parseDueDate(to);
+        } catch {
+            return res.status(400).json({ error: "Invalid date" });
+        }
+
+        if (fromDate || toDate) {
+            if (!fromDate || !toDate || fromDate > toDate) {
+                return res.status(400).json({
+                    error: "from and to are required, from must be <= to",
+                });
+            }
         }
 
         try {
@@ -83,6 +102,24 @@ export default async function handler(
                     FROM visible_tasks
                     ORDER BY due_date ASC NULLS LAST, created_at DESC`,
                     [category, user.id],
+                );
+            } else if (from && to) {
+                result = await pool.query(
+                    `WITH range_tasks AS (
+                        SELECT * FROM tasks WHERE due_date BETWEEN $1 AND $2 AND tasks.user_id = $3
+                    ),
+                    visible_tasks AS (
+                        SELECT * FROM range_tasks
+                        UNION
+                        SELECT child.* FROM tasks child
+                        JOIN range_tasks parent ON child.parent_task_id = parent.id
+                        WHERE child.user_id = $3
+                    )
+                    SELECT id, title, created_at, updated_at, status, parent_task_id,
+                        category_id, project_id, due_date::text AS due_date
+                    FROM visible_tasks
+                    ORDER BY due_date ASC, created_at DESC`,
+                    [from, to, user.id],
                 );
             } else if (project) {
                 result = await pool.query(

@@ -9,6 +9,7 @@ import {
     GithubLoginButton,
     GoogleLoginButton,
 } from "react-social-login-buttons";
+import Head from "next/head";
 
 export const getServerSideProps = redirectIfAuthenticated;
 
@@ -42,69 +43,76 @@ export default function LoginPage() {
     }
 
     return (
-        <StyledMain>
-            <Wrapper>
-                <BigDuck>🦆</BigDuck>
-                <h1>Login</h1>
-                <StyledForm onSubmit={handleSubmit}>
-                    <StyledInput
-                        name="email"
-                        type="email"
-                        placeholder="E-Mail"
-                        required
+        <>
+            <Head>
+                <title>GYDIAR! - Get Your Ducks In A Row!</title>
+                <meta name="description" content="Get Your Ducks In A Row!" />
+                <link rel="icon" href="/favicon.png" />
+            </Head>
+            <StyledMain>
+                <Wrapper>
+                    <BigDuck>🦆</BigDuck>
+                    <h1>Login</h1>
+                    <StyledForm onSubmit={handleSubmit}>
+                        <StyledInput
+                            name="email"
+                            type="email"
+                            placeholder="E-Mail"
+                            required
+                        />
+                        <StyledInput
+                            name="password"
+                            type="password"
+                            placeholder="Password"
+                            required
+                        />
+                        <ButtonPrimary
+                            text={loading ? "Please wait…" : "Login"}
+                            type="submit"
+                            onClick={() => {}}
+                            disabled={loading}
+                        />
+                        {error && <p role="alert">{error}</p>}
+                    </StyledForm>
+                    <p>
+                        Don&apos;t have an account?{" "}
+                        <Link href="/register">Sign up</Link>
+                    </p>
+                    <Link href="/forgot-password">Forgot password?</Link>
+                    <StyledHr />
+                    <GithubLoginButton
+                        onClick={() =>
+                            authClient.signIn.social({
+                                provider: "github",
+                                callbackURL: "/",
+                            })
+                        }
+                        style={{
+                            padding: "4px 8px",
+                            fontSize: "1rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                        }}
                     />
-                    <StyledInput
-                        name="password"
-                        type="password"
-                        placeholder="Password"
-                        required
+                    <GoogleLoginButton
+                        onClick={() =>
+                            authClient.signIn.social({
+                                provider: "google",
+                                callbackURL: "/",
+                            })
+                        }
+                        style={{
+                            padding: "4px 8px",
+                            fontSize: "1rem",
+                            display: "flex",
+                            justifyContent: "center",
+                            borderRadius: "8px",
+                        }}
                     />
-                    <ButtonPrimary
-                        text={loading ? "Please wait…" : "Login"}
-                        type="submit"
-                        onClick={() => {}}
-                        disabled={loading}
-                    />
-                    {error && <p role="alert">{error}</p>}
-                </StyledForm>
-                <p>
-                    Don&apos;t have an account?{" "}
-                    <Link href="/register">Sign up</Link>
-                </p>
-                <Link href="/forgot-password">Forgot password?</Link>
-                <StyledHr />
-                <GithubLoginButton
-                    onClick={() =>
-                        authClient.signIn.social({
-                            provider: "github",
-                            callbackURL: "/",
-                        })
-                    }
-                    style={{
-                        padding: "4px 8px",
-                        fontSize: "1rem",
-                        display: "flex",
-                        justifyContent: "center",
-                        borderRadius: "8px",
-                    }}
-                />
-                <GoogleLoginButton
-                    onClick={() =>
-                        authClient.signIn.social({
-                            provider: "google",
-                            callbackURL: "/",
-                        })
-                    }
-                    style={{
-                        padding: "4px 8px",
-                        fontSize: "1rem",
-                        display: "flex",
-                        justifyContent: "center",
-                        borderRadius: "8px",
-                    }}
-                />
-            </Wrapper>
-        </StyledMain>
+                </Wrapper>
+            </StyledMain>
+        </>
     );
 }
 

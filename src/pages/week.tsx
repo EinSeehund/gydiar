@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import { JSX } from "react";
 import styled from "styled-components";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek } from "date-fns";
 import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
@@ -13,9 +13,13 @@ import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
 
 const TodayPage: NextPage = ({}): JSX.Element => {
+    const now = new Date();
+    const from = format(startOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+    const to = format(endOfWeek(now, { weekStartsOn: 1 }), "yyyy-MM-dd");
+
     const today = format(new Date(), "yyyy-MM-dd");
 
-    const tasksApi = useTasks({ due: today });
+    const tasksApi = useTasks({ from, to });
 
     const {
         data: TasksFetch,
@@ -58,7 +62,7 @@ const TodayPage: NextPage = ({}): JSX.Element => {
     return (
         <>
             <Head>
-                <title>GYDIAR! - Today</title>
+                <title>GYDIAR! - This Week</title>
                 <meta name="description" content="Get Your Ducks In A Row!" />
                 <link rel="icon" href="/favicon.png" />
             </Head>
@@ -68,7 +72,7 @@ const TodayPage: NextPage = ({}): JSX.Element => {
             />
             <main>
                 <Container>
-                    <StyledPageTitle>Today</StyledPageTitle>
+                    <StyledPageTitle>This Week</StyledPageTitle>
                     <TaskList
                         taskList={tasksInDb}
                         categories={categoriesInDb}

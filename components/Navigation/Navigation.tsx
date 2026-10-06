@@ -115,6 +115,22 @@ export default function Navigation({ userName }: NavigationProps) {
                         Today
                     </Link>
                     <Link
+                        href="/week"
+                        style={linkStyle("/week")}
+                        aria-current={asPath === "/week" ? "page" : undefined}
+                        onClick={toggleNavMobile}
+                    >
+                        This Week
+                    </Link>
+                    <Link
+                        href="/month"
+                        style={linkStyle("/month")}
+                        aria-current={asPath === "/month" ? "page" : undefined}
+                        onClick={toggleNavMobile}
+                    >
+                        This Month
+                    </Link>
+                    <Link
                         href="/calendar"
                         style={linkStyle("/calendar")}
                         aria-current={
@@ -233,7 +249,8 @@ const NavBar = styled.nav`
     }
 
     &:hover {
-        scrollbar-color: color-mix(in srgb, var(--foreground) 10%, transparent) transparent;
+        scrollbar-color: color-mix(in srgb, var(--foreground) 10%, transparent)
+            transparent;
         transition: scrollbar-color 0.6s;
     }
 `;

@@ -5,6 +5,7 @@ import { authClient } from "@/lib/auth-client";
 import { redirectIfAuthenticated } from "@/lib/session";
 import styled from "styled-components";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
+import Head from "next/head";
 
 export const getServerSideProps = redirectIfAuthenticated;
 
@@ -26,39 +27,57 @@ export default function ForgotPasswordPage() {
 
     if (sent) {
         return (
-            <StyledMain>
-                <Wrapper>
-                    <BigDuck>🦆</BigDuck>
-                    <p>
-                        If there is an account associated with this email address a reset link has been sent.
-                    </p>
-                    <Link href="/login">Back to login page</Link>
-                </Wrapper>
-            </StyledMain>
+            <>
+                <Head>
+                    <title>GYDIAR! - Forgot Password?</title>
+                    <meta
+                        name="description"
+                        content="Get Your Ducks In A Row!"
+                    />
+                    <link rel="icon" href="/favicon.png" />
+                </Head>
+                <StyledMain>
+                    <Wrapper>
+                        <BigDuck>🦆</BigDuck>
+                        <p>
+                            If there is an account associated with this email
+                            address a reset link has been sent.
+                        </p>
+                        <Link href="/login">Back to login page</Link>
+                    </Wrapper>
+                </StyledMain>
+            </>
         );
     }
 
     return (
-        <StyledMain>
-            <Wrapper>
-                <BigDuck>🦆</BigDuck>
-                <h1>Passwort vergessen</h1>
-                <StyledForm onSubmit={handleSubmit}>
-                    <StyledInput
-                        name="email"
-                        type="email"
-                        placeholder="E-Mail"
-                        required
-                    />
-                    <ButtonPrimary
-                        type="submit"
-                        text={loading ? "Please wait…" : "Request link"}
-                        disabled={loading}
-                    />
-                </StyledForm>
-                <Link href="/login">Zurück zum Login</Link>
-            </Wrapper>
-        </StyledMain>
+        <>
+            <Head>
+                <title>GYDIAR! - Forgot Password?</title>
+                <meta name="description" content="Get Your Ducks In A Row!" />
+                <link rel="icon" href="/favicon.png" />
+            </Head>
+            <StyledMain>
+                <Wrapper>
+                    <BigDuck>🦆</BigDuck>
+                    <h1>Passwort vergessen</h1>
+                    <StyledForm onSubmit={handleSubmit}>
+                        <StyledInput
+                            name="email"
+                            type="email"
+                            placeholder="E-Mail"
+                            required
+                        />
+                        <ButtonPrimary
+                            type="submit"
+                            text={loading ? "Please wait…" : "Request link"}
+                            disabled={loading}
+                        />
+                    </StyledForm>
+                    <Link href="/login">Zurück zum Login</Link>
+                </Wrapper>
+            </StyledMain>
+        </>
     );
 }
 
