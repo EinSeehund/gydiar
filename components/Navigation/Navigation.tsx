@@ -13,6 +13,7 @@ import ProjectForm from "../ProjectForm/ProjectForm";
 import { RiMenuFold3Line } from "react-icons/ri";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 import LogoutButton from "../LogoutButton/LogoutButton";
+import ThemeToggle from "../ThemeToggle/ThemeToggle";
 
 type NavigationProps = {
     userName: string;
@@ -179,6 +180,9 @@ export default function Navigation({ userName }: NavigationProps) {
                     </p>
                     <LogoutButton />
                 </UserContainer>
+                <ThemeToggleWrapper>
+                    <ThemeToggle />
+                </ThemeToggleWrapper>
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
                 <ButtonIcon $navVisible={showNavMobile}>
@@ -219,11 +223,18 @@ const NavBar = styled.nav`
     flex: 1;
     min-height: 0;
     overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
     padding-bottom: 32px;
 
     & a[aria-current="page"]::after {
         content: "→";
         margin-left: 8px;
+    }
+
+    &:hover {
+        scrollbar-color: color-mix(in srgb, var(--foreground) 10%, transparent) transparent;
+        transition: scrollbar-color 0.6s;
     }
 `;
 
@@ -288,10 +299,14 @@ const UserContainer = styled.div`
     padding-top: 16px;
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     font-size: small;
 
     b {
         font-size: medium;
     }
+`;
+
+const ThemeToggleWrapper = styled.div`
+    margin-top: 4px;
 `;

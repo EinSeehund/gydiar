@@ -5,7 +5,6 @@ import styled from "styled-components";
 export default function LogoutButton() {
     async function handleLogout() {
         await authClient.signOut();
-        // SWR-Cache leeren, damit der nächste Nutzer keine alten Tasks sieht
         await mutate(() => true, undefined, { revalidate: false });
         // eslint-disable-next-line @next/next/no-location-assign-relative-destination
         window.location.assign("/login");

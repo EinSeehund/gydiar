@@ -85,7 +85,6 @@ export default async function handler(
                     [category, user.id],
                 );
             } else if (project) {
-                // identisch zu category, nur mit projects
                 result = await pool.query(
                     `WITH project_tasks AS (
                         SELECT t.*

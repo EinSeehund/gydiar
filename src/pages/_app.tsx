@@ -1,6 +1,5 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-//import Header from "../../components/Header/Header";
 import Navigation from "../../components/Navigation/Navigation";
 import Router from "next/router";
 import { SWRConfig } from "swr";
@@ -21,7 +20,6 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                     },
                 }}
             >
-                {/* <Header /> */}
                 {session && <Navigation userName={session.user.name} />}
                 <Component {...pageProps} />
             </SWRConfig>
