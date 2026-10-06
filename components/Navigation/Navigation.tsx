@@ -115,6 +115,14 @@ export default function Navigation({ userName }: NavigationProps) {
                         Today
                     </Link>
                     <Link
+                        href="/week"
+                        style={linkStyle("/week")}
+                        aria-current={asPath === "/week" ? "page" : undefined}
+                        onClick={toggleNavMobile}
+                    >
+                        This Week
+                    </Link>
+                    <Link
                         href="/calendar"
                         style={linkStyle("/calendar")}
                         aria-current={
