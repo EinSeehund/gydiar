@@ -265,6 +265,7 @@ const CategoryLink = styled(Link)<{ $color: string }>`
     padding-left: 4px;
     border-left: 5px solid ${({ $color }) => $color};
     border-radius: 4px;
+    word-wrap: break-word;
 `;
 
 const AddButton = styled.button`
@@ -278,6 +279,7 @@ const AddButton = styled.button`
 
 const ProjectLink = styled(Link)`
     font-style: italic;
+    word-wrap: break-word;
 `;
 
 const NavButton = styled.button`
@@ -324,6 +326,11 @@ const UserContainer = styled.div`
     justify-content: space-between;
     align-items: center;
     font-size: small;
+
+    p {
+        max-width: 60%;
+        word-wrap: break-word;
+    }
 
     b {
         font-size: medium;
