@@ -1,9 +1,14 @@
 import styled from "styled-components";
-import { SubmitEvent } from "react";
+import { SubmitEvent, useState } from "react";
 import type { Project } from "@/types/project";
+import {
+    MAX_PROJECT_NAME_LENGTH,
+    MAX_DESCRIPTION_LENGTH,
+} from "@/lib/validation";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
+import CharCount from "../CharCount/CharCount";
 
 type ProjectFormProps = {
     project: Project | null;
@@ -18,6 +23,11 @@ export default function ProjectForm({
     onSubmit,
     onDelete,
 }: ProjectFormProps) {
+    const [nameLength, setNameLength] = useState(project?.name?.length ?? 0);
+    const [descriptionLength, setDescriptionLength] = useState(
+        project?.description?.length ?? 0,
+    );
+
     return (
         <>
             <Headline>{project ? "Edit Project" : "Add New Project"}</Headline>
@@ -31,13 +41,26 @@ export default function ProjectForm({
                         required={true}
                         autoFocus={!project}
                         defaultValue={project?.name}
+                        maxLength={MAX_PROJECT_NAME_LENGTH}
+                        onChange={(event) =>
+                            setNameLength(event.target.value.length)
+                        }
                     />
+                    <CharCount current={nameLength} max={MAX_PROJECT_NAME_LENGTH} />
                     <label htmlFor="description">Description</label>
                     <StyledTextArea
                         id="description"
                         name="description"
                         rows={10}
                         defaultValue={project?.description ?? ""}
+                        maxLength={MAX_DESCRIPTION_LENGTH}
+                        onChange={(event) =>
+                            setDescriptionLength(event.target.value.length)
+                        }
+                    />
+                    <CharCount
+                        current={descriptionLength}
+                        max={MAX_DESCRIPTION_LENGTH}
                     />
                 </InputContainer>
                 <ButtonContainer>

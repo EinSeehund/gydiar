@@ -1,9 +1,11 @@
-import { type SubmitEvent } from "react";
+import { type SubmitEvent, useState } from "react";
 import styled from "styled-components";
 import { Task } from "@/types/task";
+import { MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
 import ButtonPrimarySmall from "../ButtonPrimary/ButtonPrimarySmall";
 import ButtonSecondarySmall from "../ButtonSecondary/ButtonSecondarySmall";
 import ButtonTertiarySmall from "../ButtonTertiary/ButtonTertiarySmall";
+import CharCount from "../CharCount/CharCount";
 
 type SubTaskFormProps = {
     task: Task | null;
@@ -29,9 +31,12 @@ export default function SubTaskForm({
     onCancel,
     onDelete,
 }: SubTaskFormProps) {
+    const [titleLength, setTitleLength] = useState(task?.title?.length ?? 0);
+
     function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
         onSubmit(event, parentTaskId);
         event.target.reset();
+        setTitleLength(0);
     }
 
     return (
@@ -48,7 +53,10 @@ export default function SubTaskForm({
                     autoFocus={!isEditing}
                     defaultValue={task?.title}
                     required
+                    maxLength={MAX_TASK_TITLE_LENGTH}
+                    onChange={(event) => setTitleLength(event.target.value.length)}
                 />
+                <CharCount current={titleLength} max={MAX_TASK_TITLE_LENGTH} />
                 <ButtonContainer>
                     <ButtonPrimarySmall
                         text={isEditing ? "Update" : "Add"}

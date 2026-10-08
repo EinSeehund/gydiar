@@ -1,12 +1,14 @@
-import { type SubmitEvent } from "react";
+import { type SubmitEvent, useState } from "react";
 import styled from "styled-components";
 import { TaskWithChildren, TaskFormDefaults } from "@/types/task";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
+import { MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
 import SubTaskList from "../SubTaskList/SubTaskList";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
+import CharCount from "../CharCount/CharCount";
 
 type TaskFormProps = {
     task: TaskWithChildren | null;
@@ -47,6 +49,8 @@ export default function TaskForm({
         isLoading: ProjectsIsLoading,
     } = useProjects();
 
+    const [titleLength, setTitleLength] = useState(task?.title?.length ?? 0);
+
     if (CategoriesIsLoading || ProjectsIsLoading) return <p>Loading...</p>;
     if (CategoriesError || ProjectsError) return <p>Failed to load tasks.</p>;
 
@@ -77,7 +81,12 @@ export default function TaskForm({
                         autoFocus={!isEditing}
                         defaultValue={task?.title}
                         required
+                        maxLength={MAX_TASK_TITLE_LENGTH}
+                        onChange={(event) =>
+                            setTitleLength(event.target.value.length)
+                        }
                     />
+                    <CharCount current={titleLength} max={MAX_TASK_TITLE_LENGTH} />
                 </FormItemWrapper>
                 <FormItemWrapper>
                     <label htmlFor="category-select">Category</label>
