@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import slugify from "slugify";
 import { requireUser } from "@/lib/session";
 import { isUniqueViolation } from "@/lib/db-helpers";
+import { parseText, parseColor, MAX_CATEGORY_NAME_LENGTH } from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
@@ -27,15 +28,17 @@ export default async function handler(
                 .json({ success: false, error: "Internal server error" });
         }
     } else if (req.method === "POST") {
-        const rawName = req.body?.name;
-
-        if (typeof rawName !== "string" || !rawName.trim()) {
-            return res
-                .status(400)
-                .json({ success: false, error: "Name is required" });
+        let name: string;
+        let color: string | null;
+        try {
+            name = parseText(req.body?.name, MAX_CATEGORY_NAME_LENGTH, "Name");
+            color = parseColor(req.body?.color) ?? null;
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                error: error instanceof Error ? error.message : "Invalid input",
+            });
         }
-
-        const name = rawName.trim();
 
         try {
             await pool.query(
@@ -43,7 +46,7 @@ export default async function handler(
                 INSERT INTO "public"."categories" ("name", "color", "slug", "user_id")
                 VALUES ($1, $2, $3, $4)
             `,
-                [name, req.body.color, slugify(name), user.id],
+                [name, color, slugify(name), user.id],
             );
             return res.status(200).json({
                 success: true,

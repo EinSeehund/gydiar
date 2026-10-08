@@ -3,6 +3,13 @@ import pool from "@/lib/db";
 import slugify from "slugify";
 import { requireUser } from "@/lib/session";
 import { isUniqueViolation } from "@/lib/db-helpers";
+import {
+    parseText,
+    parseOptionalText,
+    parseDueDate,
+    MAX_PROJECT_NAME_LENGTH,
+    MAX_DESCRIPTION_LENGTH,
+} from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
@@ -27,15 +34,21 @@ export default async function handler(
                 .json({ success: false, error: "Internal server error" });
         }
     } else if (req.method === "POST") {
-        const rawName = req.body?.name;
-
-        if (typeof rawName !== "string" || !rawName.trim()) {
-            return res
-                .status(400)
-                .json({ success: false, error: "Name is required" });
+        let name: string;
+        let description: string | null;
+        let completed_at: string | null;
+        try {
+            name = parseText(req.body?.name, MAX_PROJECT_NAME_LENGTH, "Name");
+            description =
+                parseOptionalText(req.body?.description, MAX_DESCRIPTION_LENGTH) ??
+                null;
+            completed_at = parseDueDate(req.body?.completed_at) ?? null;
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                error: error instanceof Error ? error.message : "Invalid input",
+            });
         }
-
-        const name = rawName.trim();
 
         try {
             await pool.query(
@@ -43,13 +56,7 @@ export default async function handler(
                 INSERT INTO "public"."projects" ("name", "completed_at", "slug", "description", "user_id")
                 VALUES ($1, $2, $3, $4, $5)
                 `,
-                [
-                    name,
-                    req.body.completed_at,
-                    slugify(name),
-                    req.body.description,
-                    user.id,
-                ],
+                [name, completed_at, slugify(name), description, user.id],
             );
             return res.status(201).json({
                 success: true,
