@@ -149,7 +149,7 @@ export default function Navigation({ userName }: NavigationProps) {
                     >
                         All Tasks
                     </Link>
-                    <hr />
+                    <StyledHr />
                     <h3>Categories</h3>
                     {categories?.map((category: Category) => (
                         <CategoryLink
@@ -170,7 +170,7 @@ export default function Navigation({ userName }: NavigationProps) {
                     <AddButton onClick={openCategoryForm}>
                         + Add Category
                     </AddButton>
-                    <hr />
+                    <StyledHr />
                     <h3>Projects</h3>
                     {projects?.map((project: Project) => (
                         <ProjectLink
@@ -198,8 +198,8 @@ export default function Navigation({ userName }: NavigationProps) {
                     <LogoutButton />
                 </UserContainer>
                 <IconBar>
-                    <ThemeToggle />
                     <SettingsLink onClick={() => setShowNavMobile(false)} />
+                    <ThemeToggle />
                 </IconBar>
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
@@ -255,6 +255,10 @@ const NavBar = styled.nav`
             transparent;
         transition: scrollbar-color 0.6s;
     }
+`;
+
+const StyledHr = styled.hr`
+    border-top: 1px dotted black;
 `;
 
 const CategoryLink = styled(Link)<{ $color: string }>`
@@ -330,5 +334,5 @@ const IconBar = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 4px;
+    margin-top: 8px;
 `;
