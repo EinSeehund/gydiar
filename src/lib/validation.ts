@@ -9,10 +9,10 @@ export function parseDueDate(value: unknown): string | null | undefined {
 
 // Mirrors the DB column sizes so a bad request fails with a clean 400
 // instead of a raw Postgres "value too long" 500.
-export const MAX_TASK_TITLE_LENGTH = 200;
-export const MAX_CATEGORY_NAME_LENGTH = 100; // categories.name is varchar(100)
-export const MAX_PROJECT_NAME_LENGTH = 150; // projects.name is varchar(150)
-export const MAX_DESCRIPTION_LENGTH = 5000;
+export const MAX_TASK_TITLE_LENGTH = 150;
+export const MAX_CATEGORY_NAME_LENGTH = 50; // categories.name is varchar(100)
+export const MAX_PROJECT_NAME_LENGTH = 50; // projects.name is varchar(150)
+export const MAX_DESCRIPTION_LENGTH = 1000;
 
 /**
  * Validates a required, trimmed text field (task title, category/project
