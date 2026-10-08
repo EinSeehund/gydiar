@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import pool from "./db";
 import { sendEmail, actionEmail } from "./email";
+import { deleteUserData } from "./account";
 
 export const auth = betterAuth({
     database: pool,
@@ -38,6 +39,31 @@ export const auth = betterAuth({
                     "E-Mail bestätigen",
                 ),
             );
+        },
+    },
+
+    user: {
+        changeEmail: {
+            enabled: true,
+            sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
+                await sendEmail(
+                    user.email,
+                    "Confirm your email change",
+                    actionEmail(
+                        "Change your email address",
+                        `Click the button to change the email address of your Gydiar account to ${newEmail}. Afterwards we'll send a verification link to the new address.`,
+                        url,
+                        "Confirm change",
+                        "en",
+                    ),
+                );
+            },
+        },
+        deleteUser: {
+            enabled: true,
+            beforeDelete: async (user) => {
+                await deleteUserData(user.id);
+            },
         },
     },
 
