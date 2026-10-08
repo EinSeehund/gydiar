@@ -51,7 +51,13 @@ export default function ThemeToggle() {
 }
 
 const StyledButton = styled.button`
+    display: flex;
+    align-items: center;
     background: none;
     border: none;
+    padding: 0;
     font-size: 1.2rem;
+    line-height: 0;
+    color: var(--foreground);
+    cursor: pointer;
 `;

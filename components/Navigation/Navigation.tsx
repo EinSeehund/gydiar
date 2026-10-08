@@ -14,6 +14,7 @@ import { RiMenuFold3Line } from "react-icons/ri";
 import LoadingSpinner from "../LoadingSpinner/LoadingSpinner";
 import LogoutButton from "../LogoutButton/LogoutButton";
 import ThemeToggle from "../ThemeToggle/ThemeToggle";
+import SettingsLink from "../SettingsLink/SettingsLink";
 
 type NavigationProps = {
     userName: string;
@@ -196,9 +197,10 @@ export default function Navigation({ userName }: NavigationProps) {
                     </p>
                     <LogoutButton />
                 </UserContainer>
-                <ThemeToggleWrapper>
+                <IconBar>
                     <ThemeToggle />
-                </ThemeToggleWrapper>
+                    <SettingsLink onClick={() => setShowNavMobile(false)} />
+                </IconBar>
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
                 <ButtonIcon $navVisible={showNavMobile}>
@@ -324,6 +326,9 @@ const UserContainer = styled.div`
     }
 `;
 
-const ThemeToggleWrapper = styled.div`
+const IconBar = styled.div`
+    display: flex;
+    align-items: center;
+    gap: 12px;
     margin-top: 4px;
 `;

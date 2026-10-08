@@ -31,7 +31,20 @@ export function actionEmail(
     text: string,
     url: string,
     label: string,
+    lang: "de" | "en" = "de",
 ) {
+    const footer =
+        lang === "en"
+            ? {
+                  fallback:
+                      "If the button doesn't work, copy this link into your browser:",
+                  ignore: "If you didn't request this, you can ignore this email.",
+              }
+            : {
+                  fallback:
+                      "Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:",
+                  ignore: "Wenn du das nicht angefordert hast, kannst du diese E-Mail ignorieren.",
+              };
     return `
     <div style="font-family:sans-serif;max-width:480px;margin:auto">
       <h2>${heading}</h2>
@@ -39,7 +52,7 @@ export function actionEmail(
       <p>
         <a href="${url}" style="display:inline-block;padding:12px 20px;background:#111;color:#fff;border-radius:6px;text-decoration:none">${label}</a>
       </p>
-      <p style="color:#666;font-size:13px">Falls der Button nicht funktioniert, kopiere diesen Link in deinen Browser:<br>${url}</p>
-      <p style="color:#666;font-size:13px">Wenn du das nicht angefordert hast, kannst du diese E-Mail ignorieren.</p>
+      <p style="color:#666;font-size:13px">${footer.fallback}<br>${url}</p>
+      <p style="color:#666;font-size:13px">${footer.ignore}</p>
     </div>`;
 }
