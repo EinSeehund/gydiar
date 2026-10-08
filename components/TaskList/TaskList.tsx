@@ -4,7 +4,10 @@ import type { Project } from "@/types/project";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
+import TaskSortPanel from "../TaskSortPanel/TaskSortPanel";
 import { useMemo } from "react";
+import { useTaskView } from "@/lib/hooks/useTaskView";
+import { applyTaskView, type SortKey } from "@/lib/taskView";
 
 type TaskListProps = {
     taskList: Task[];
@@ -55,6 +58,20 @@ export default function TaskList({
         }));
     }, [taskList]);
 
+    const { view, setSort } = useTaskView();
+    const sortedTaskTree = applyTaskView(taskTree, view, {
+        categories,
+        projects,
+    });
+
+    // Sorting by a column that is hidden (e.g. category on a category page) is pointless.
+    const availableSortKeys: SortKey[] = [
+        "date",
+        ...(categoriesVisible ? (["category"] as const) : []),
+        ...(projectsVisible ? (["project"] as const) : []),
+        "title",
+    ];
+
     function findCategory(taskObj: Task | TaskWithChildren) {
         if (taskObj.category_id) {
             const foundCategory = categories.find(
@@ -91,8 +108,15 @@ export default function TaskList({
                     There are no tasks in this list yet...
                 </NoTasksText>
             )}
+            {!hasNoTasks && (
+                <TaskSortPanel
+                    sort={view.sort}
+                    onChange={setSort}
+                    availableKeys={availableSortKeys}
+                />
+            )}
             <TaskListOpen>
-                {taskTree
+                {sortedTaskTree
                     .filter(
                         (task) =>
                             task.status === "open" &&
@@ -118,7 +142,7 @@ export default function TaskList({
                 <StyledDetails>
                     <StyledSummary>Done Tasks</StyledSummary>
                     <TaskListDone>
-                        {taskTree
+                        {sortedTaskTree
                             .filter(
                                 (task) =>
                                     task.status === "done" &&
