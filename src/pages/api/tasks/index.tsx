@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
-import { parseDueDate } from "@/lib/validation";
+import { parseDueDate, parseText, MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
 import { ownsRow } from "@/lib/db-helpers";
 
@@ -163,12 +163,23 @@ export default async function handler(
                 .json({ success: false, error: "Internal Server Error" });
         }
     } else if (req.method === "POST") {
+        let title: string;
+        let due_date: string | null;
         try {
-            const due_date = parseDueDate(req.body.due_date) ?? null;
-            const parent_task_id = req.body.parent_task_id ?? null;
-            const category_id = req.body.category_id ?? null;
-            const project_id = req.body.project_id ?? null;
+            title = parseText(req.body.taskTitle, MAX_TASK_TITLE_LENGTH, "Task title");
+            due_date = parseDueDate(req.body.due_date) ?? null;
+        } catch (error) {
+            return res.status(400).json({
+                success: false,
+                error: error instanceof Error ? error.message : "Invalid input",
+            });
+        }
 
+        const parent_task_id = req.body.parent_task_id ?? null;
+        const category_id = req.body.category_id ?? null;
+        const project_id = req.body.project_id ?? null;
+
+        try {
             const checks = await Promise.all([
                 ownsRow("tasks", parent_task_id, user.id),
                 ownsRow("categories", category_id, user.id),
@@ -185,7 +196,7 @@ export default async function handler(
                     ("title", "parent_task_id", "category_id", "project_id", "due_date", "user_id")
                 VALUES ($1, $2, $3, $4, $5, $6)`,
                 [
-                    req.body.taskTitle,
+                    title,
                     parent_task_id,
                     category_id,
                     project_id,

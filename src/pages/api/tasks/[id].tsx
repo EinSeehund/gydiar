@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { ownsRow } from "@/lib/db-helpers";
-import { parseDueDate } from "@/lib/validation";
+import { parseDueDate, parseText, MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
 
 export default async function handler(
     req: NextApiRequest,
@@ -17,16 +17,19 @@ export default async function handler(
     }
 
     if (req.method === "PUT") {
-        const rawTitle = req.body?.taskTitle;
-
-        if (typeof rawTitle !== "string" || !rawTitle.trim()) {
+        let title: string;
+        try {
+            title = parseText(
+                req.body?.taskTitle,
+                MAX_TASK_TITLE_LENGTH,
+                "Task title",
+            );
+        } catch (error) {
             return res.status(400).json({
                 success: false,
-                error: "Task title is required",
+                error: error instanceof Error ? error.message : "Invalid title",
             });
         }
-
-        const title = rawTitle.trim();
 
         let dueDate: string | null;
         try {

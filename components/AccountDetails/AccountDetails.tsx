@@ -272,6 +272,7 @@ const StyledForm = styled.form`
 
     label {
         font-size: 0.9rem;
+        margin-top: 8px;
     }
 `;
 
@@ -279,6 +280,7 @@ const StyledInput = styled.input`
     width: 100%;
     max-width: 400px;
     padding: 8px 12px;
+    margin-bottom: 16px;
     border-radius: 8px;
     border: 1px solid #bdbdbd;
     font-size: 1rem;

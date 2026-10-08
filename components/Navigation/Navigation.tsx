@@ -149,7 +149,7 @@ export default function Navigation({ userName }: NavigationProps) {
                     >
                         All Tasks
                     </Link>
-                    <hr />
+                    <StyledHr />
                     <h3>Categories</h3>
                     {categories?.map((category: Category) => (
                         <CategoryLink
@@ -170,7 +170,7 @@ export default function Navigation({ userName }: NavigationProps) {
                     <AddButton onClick={openCategoryForm}>
                         + Add Category
                     </AddButton>
-                    <hr />
+                    <StyledHr />
                     <h3>Projects</h3>
                     {projects?.map((project: Project) => (
                         <ProjectLink
@@ -198,8 +198,8 @@ export default function Navigation({ userName }: NavigationProps) {
                     <LogoutButton />
                 </UserContainer>
                 <IconBar>
-                    <ThemeToggle />
                     <SettingsLink onClick={() => setShowNavMobile(false)} />
+                    <ThemeToggle />
                 </IconBar>
             </NavContainer>
             <NavButton onClick={toggleNavMobile}>
@@ -257,10 +257,15 @@ const NavBar = styled.nav`
     }
 `;
 
+const StyledHr = styled.hr`
+    border-top: 1px dotted black;
+`;
+
 const CategoryLink = styled(Link)<{ $color: string }>`
     padding-left: 4px;
     border-left: 5px solid ${({ $color }) => $color};
     border-radius: 4px;
+    word-wrap: break-word;
 `;
 
 const AddButton = styled.button`
@@ -274,6 +279,7 @@ const AddButton = styled.button`
 
 const ProjectLink = styled(Link)`
     font-style: italic;
+    word-wrap: break-word;
 `;
 
 const NavButton = styled.button`
@@ -321,6 +327,11 @@ const UserContainer = styled.div`
     align-items: center;
     font-size: small;
 
+    p {
+        max-width: 60%;
+        word-wrap: break-word;
+    }
+
     b {
         font-size: medium;
     }
@@ -330,5 +341,5 @@ const IconBar = styled.div`
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 4px;
+    margin-top: 8px;
 `;

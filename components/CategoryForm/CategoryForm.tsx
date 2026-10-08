@@ -1,9 +1,11 @@
 import styled from "styled-components";
-import { SubmitEvent } from "react";
+import { SubmitEvent, useState } from "react";
 import type { Category } from "@/types/category";
+import { MAX_CATEGORY_NAME_LENGTH } from "@/lib/validation";
 import ButtonPrimary from "../ButtonPrimary/ButtonPrimary";
 import ButtonSecondary from "../ButtonSecondary/ButtonSecondary";
 import ButtonTertiary from "../ButtonTertiary/ButtonTertiary";
+import CharCount from "../CharCount/CharCount";
 
 type CategoryFormProps = {
     onClose: () => void;
@@ -18,6 +20,8 @@ export default function CategoryForm({
     onDelete,
     category,
 }: CategoryFormProps) {
+    const [nameLength, setNameLength] = useState(category?.name?.length ?? 0);
+
     return (
         <>
             <Headline>
@@ -30,13 +34,23 @@ export default function CategoryForm({
                         name="color"
                         defaultValue={category?.color}
                     />
-                    <StyledInput
-                        type="text"
-                        name="name"
-                        required={true}
-                        autoFocus={!category}
-                        defaultValue={category?.name}
-                    />
+                    <NameWrapper>
+                        <StyledInput
+                            type="text"
+                            name="name"
+                            required={true}
+                            autoFocus={!category}
+                            defaultValue={category?.name}
+                            maxLength={MAX_CATEGORY_NAME_LENGTH}
+                            onChange={(event) =>
+                                setNameLength(event.target.value.length)
+                            }
+                        />
+                        <CharCount
+                            current={nameLength}
+                            max={MAX_CATEGORY_NAME_LENGTH}
+                        />
+                    </NameWrapper>
                 </InputContainer>
                 <ButtonContainer>
                     <ButtonPrimary
@@ -92,6 +106,12 @@ const InputContainer = styled.div`
     width: 100%;
     display: flex;
     gap: 4px;
+`;
+
+const NameWrapper = styled.div`
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 `;
 
 const ButtonContainer = styled.div`

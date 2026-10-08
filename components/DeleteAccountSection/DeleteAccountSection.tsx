@@ -45,6 +45,7 @@ const Section = styled.section`
     align-items: flex-start;
     gap: 16px;
     padding: 24px;
+    margin-top: 16px;
     border: 2px solid #d80202;
     border-radius: 16px;
 
