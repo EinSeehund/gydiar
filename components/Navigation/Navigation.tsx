@@ -41,6 +41,7 @@ export default function Navigation({ userName }: NavigationProps) {
     } = useProjects();
 
     const { asPath } = useRouter();
+    const currentPath = asPath.split("?")[0];
 
     if (CategoryIsLoading || ProjectIsLoading) return <LoadingSpinner />;
     if (CategoryError || ProjectError) return <p>Failed to load tasks.</p>;
@@ -49,7 +50,7 @@ export default function Navigation({ userName }: NavigationProps) {
     const projects = ProjectData?.projects;
 
     const linkStyle = (href: string) => ({
-        fontWeight: asPath === href ? "bold" : "normal",
+        fontWeight: currentPath === href ? "bold" : "normal",
     });
 
     function openCategoryForm() {
@@ -110,7 +111,9 @@ export default function Navigation({ userName }: NavigationProps) {
                     <Link
                         href="/today"
                         style={linkStyle("/today")}
-                        aria-current={asPath === "/today" ? "page" : undefined}
+                        aria-current={
+                            currentPath === "/today" ? "page" : undefined
+                        }
                         onClick={toggleNavMobile}
                     >
                         Today
@@ -118,7 +121,9 @@ export default function Navigation({ userName }: NavigationProps) {
                     <Link
                         href="/week"
                         style={linkStyle("/week")}
-                        aria-current={asPath === "/week" ? "page" : undefined}
+                        aria-current={
+                            currentPath === "/week" ? "page" : undefined
+                        }
                         onClick={toggleNavMobile}
                     >
                         This Week
@@ -126,7 +131,9 @@ export default function Navigation({ userName }: NavigationProps) {
                     <Link
                         href="/month"
                         style={linkStyle("/month")}
-                        aria-current={asPath === "/month" ? "page" : undefined}
+                        aria-current={
+                            currentPath === "/month" ? "page" : undefined
+                        }
                         onClick={toggleNavMobile}
                     >
                         This Month
@@ -135,7 +142,7 @@ export default function Navigation({ userName }: NavigationProps) {
                         href="/calendar"
                         style={linkStyle("/calendar")}
                         aria-current={
-                            asPath === "/calendar" ? "page" : undefined
+                            currentPath === "/calendar" ? "page" : undefined
                         }
                         onClick={toggleNavMobile}
                     >
@@ -144,7 +151,9 @@ export default function Navigation({ userName }: NavigationProps) {
                     <Link
                         href="/"
                         style={linkStyle("/")}
-                        aria-current={asPath === "/" ? "page" : undefined}
+                        aria-current={
+                            currentPath === "/" ? "page" : undefined
+                        }
                         onClick={toggleNavMobile}
                     >
                         All Tasks
@@ -158,7 +167,8 @@ export default function Navigation({ userName }: NavigationProps) {
                             style={linkStyle(`/categories/${category.slug}`)}
                             $color={category.color}
                             aria-current={
-                                asPath === `/categories/${category.slug}`
+                                currentPath ===
+                                `/categories/${category.slug}`
                                     ? "page"
                                     : undefined
                             }
@@ -178,7 +188,7 @@ export default function Navigation({ userName }: NavigationProps) {
                             href={`/projects/${project.slug}`}
                             style={linkStyle(`/projects/${project.slug}`)}
                             aria-current={
-                                asPath === `/projects/${project.slug}`
+                                currentPath === `/projects/${project.slug}`
                                     ? "page"
                                     : undefined
                             }
