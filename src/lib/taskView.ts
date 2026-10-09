@@ -1,6 +1,7 @@
 import type { TaskWithChildren } from "@/types/task";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
+import { isOverdue } from "@/lib/dates";
 
 export type SortKey = "date" | "category" | "project" | "title";
 export type SortDirection = "asc" | "desc";
@@ -12,6 +13,7 @@ export type TaskSort = {
 
 export type TaskView = {
     sort: TaskSort;
+    hideOverdue: boolean;
 };
 
 export type TaskLookups = {
@@ -27,6 +29,7 @@ export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 ];
 
 export const DEFAULT_SORT: TaskSort = { key: "date", direction: "asc" };
+export const DEFAULT_HIDE_OVERDUE = false;
 
 export function isSortKey(value: unknown): value is SortKey {
     return SORT_OPTIONS.some((option) => option.key === value);
@@ -100,11 +103,22 @@ export function sortTasks(
     );
 }
 
+function isTaskOverdue(task: TaskWithChildren): boolean {
+    return isOverdue(task.due_date, task.status);
+}
+
+export function countOverdueTasks(tasks: TaskWithChildren[]): number {
+    return tasks.filter(isTaskOverdue).length;
+}
+
 // Single entry point for deriving the displayed list; add filtering here.
 export function applyTaskView(
     tasks: TaskWithChildren[],
     view: TaskView,
     lookups: TaskLookups,
 ): TaskWithChildren[] {
-    return sortTasks(tasks, view.sort, lookups);
+    const visibleTasks = view.hideOverdue
+        ? tasks.filter((task) => !isTaskOverdue(task))
+        : tasks;
+    return sortTasks(visibleTasks, view.sort, lookups);
 }

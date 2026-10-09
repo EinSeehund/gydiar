@@ -1,5 +1,7 @@
 import { useRouter } from "next/router";
+import { useState } from "react";
 import {
+    DEFAULT_HIDE_OVERDUE,
     DEFAULT_SORT,
     isSortDirection,
     isSortKey,
@@ -7,7 +9,20 @@ import {
     type TaskView,
 } from "@/lib/taskView";
 
-export function useTaskView() {
+const HIDE_OVERDUE_STORAGE_KEY = "hideOverdueTasks";
+
+function readStoredHideOverdue(): boolean {
+    if (typeof window === "undefined") return DEFAULT_HIDE_OVERDUE;
+    return window.localStorage.getItem(HIDE_OVERDUE_STORAGE_KEY) === "1";
+}
+
+type UseTaskViewOptions = {
+    allowHideOverdueFilter?: boolean;
+};
+
+export function useTaskView({
+    allowHideOverdueFilter = false,
+}: UseTaskViewOptions = {}) {
     const router = useRouter();
     const { sort: sortParam, dir: dirParam } = router.query;
 
@@ -18,7 +33,12 @@ export function useTaskView() {
             : DEFAULT_SORT.direction,
     };
 
-    const view: TaskView = { sort };
+    const [hideOverdueState, setHideOverdueState] = useState(() =>
+        allowHideOverdueFilter ? readStoredHideOverdue() : DEFAULT_HIDE_OVERDUE,
+    );
+    const hideOverdue = allowHideOverdueFilter && hideOverdueState;
+
+    const view: TaskView = { sort, hideOverdue };
 
     function setSort(newSort: TaskSort): void {
         // Keep other params (e.g. [slug]) so dynamic routes still resolve.
@@ -41,5 +61,15 @@ export function useTaskView() {
         );
     }
 
-    return { view, setSort };
+    function setHideOverdue(newValue: boolean): void {
+        if (!allowHideOverdueFilter) return;
+
+        window.localStorage.setItem(
+            HIDE_OVERDUE_STORAGE_KEY,
+            newValue ? "1" : "0",
+        );
+        setHideOverdueState(newValue);
+    }
+
+    return { view, setSort, setHideOverdue };
 }

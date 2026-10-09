@@ -7,7 +7,7 @@ import TaskListItem from "../TaskListItem/TaskListItem";
 import TaskSortPanel from "../TaskSortPanel/TaskSortPanel";
 import { useMemo } from "react";
 import { useTaskView } from "@/lib/hooks/useTaskView";
-import { applyTaskView, type SortKey } from "@/lib/taskView";
+import { applyTaskView, countOverdueTasks, type SortKey } from "@/lib/taskView";
 
 type TaskListProps = {
     taskList: Task[];
@@ -15,6 +15,7 @@ type TaskListProps = {
     categoriesVisible: boolean;
     projects: Project[];
     projectsVisible: boolean;
+    allowHideOverdueFilter: boolean;
     onCheckboxChange: (id: number, newStatus: "open" | "done") => void;
     onTitleClick: (task: TaskWithChildren) => void;
     onSubmitSubTask: (
@@ -31,6 +32,7 @@ export default function TaskList({
     categoriesVisible,
     projects,
     projectsVisible,
+    allowHideOverdueFilter,
     onCheckboxChange,
     onTitleClick,
     onSubmitSubTask,
@@ -58,11 +60,14 @@ export default function TaskList({
         }));
     }, [taskList]);
 
-    const { view, setSort } = useTaskView();
+    const { view, setSort, setHideOverdue } = useTaskView({
+        allowHideOverdueFilter,
+    });
     const sortedTaskTree = applyTaskView(taskTree, view, {
         categories,
         projects,
     });
+    const overdueCount = countOverdueTasks(taskTree);
 
     // Sorting by a column that is hidden (e.g. category on a category page) is pointless.
     const availableSortKeys: SortKey[] = [
@@ -113,6 +118,15 @@ export default function TaskList({
                     sort={view.sort}
                     onChange={setSort}
                     availableKeys={availableSortKeys}
+                    hideOverdue={
+                        allowHideOverdueFilter ? view.hideOverdue : undefined
+                    }
+                    onHideOverdueChange={
+                        allowHideOverdueFilter ? setHideOverdue : undefined
+                    }
+                    overdueCount={
+                        allowHideOverdueFilter ? overdueCount : undefined
+                    }
                 />
             )}
             <TaskListOpen>
