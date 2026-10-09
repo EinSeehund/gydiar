@@ -79,6 +79,7 @@ const TodayPage: NextPage = ({}): JSX.Element => {
                         categoriesVisible={true}
                         projects={projectsInDb}
                         projectsVisible={true}
+                        allowHideOverdueFilter={true}
                         onCheckboxChange={handleUpdateTaskStatus}
                         onTitleClick={openEditTaskForm}
                         onSubmitSubTask={handleNewSubTask}

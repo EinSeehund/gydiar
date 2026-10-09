@@ -12,66 +12,116 @@ type TaskSortPanelProps = {
     sort: TaskSort;
     onChange: (sort: TaskSort) => void;
     availableKeys: SortKey[];
+    hideOverdue?: boolean;
+    onHideOverdueChange?: (hideOverdue: boolean) => void;
+    overdueCount?: number;
 };
 
 export default function TaskSortPanel({
     sort,
     onChange,
     availableKeys,
+    hideOverdue,
+    onHideOverdueChange,
+    overdueCount,
 }: TaskSortPanelProps): JSX.Element {
     const isAscending = sort.direction === "asc";
     const directionLabel = isAscending ? "Ascending" : "Descending";
 
     return (
         <PanelWrapper>
-            <label htmlFor="task-sort">Sort by</label>
-            <StyledSelect
-                id="task-sort"
-                value={sort.key}
-                onChange={(event) => {
-                    const key = event.target.value;
-                    if (isSortKey(key)) {
-                        onChange({ ...sort, key });
+            <SortRow>
+                <label htmlFor="task-sort">Sort by</label>
+                <StyledSelect
+                    id="task-sort"
+                    value={sort.key}
+                    onChange={(event) => {
+                        const key = event.target.value;
+                        if (isSortKey(key)) {
+                            onChange({ ...sort, key });
+                        }
+                    }}
+                >
+                    {SORT_OPTIONS.filter((option) =>
+                        availableKeys.includes(option.key),
+                    ).map((option) => (
+                        <option key={option.key} value={option.key}>
+                            {option.label}
+                        </option>
+                    ))}
+                </StyledSelect>
+                <DirectionButton
+                    type="button"
+                    aria-label={directionLabel}
+                    title={directionLabel}
+                    onClick={() =>
+                        onChange({
+                            ...sort,
+                            direction: isAscending ? "desc" : "asc",
+                        })
                     }
-                }}
-            >
-                {SORT_OPTIONS.filter((option) =>
-                    availableKeys.includes(option.key),
-                ).map((option) => (
-                    <option key={option.key} value={option.key}>
-                        {option.label}
-                    </option>
-                ))}
-            </StyledSelect>
-            <DirectionButton
-                type="button"
-                aria-label={directionLabel}
-                title={directionLabel}
-                onClick={() =>
-                    onChange({
-                        ...sort,
-                        direction: isAscending ? "desc" : "asc",
-                    })
-                }
-            >
-                {isAscending ? <IoArrowUp /> : <IoArrowDown />}
-            </DirectionButton>
+                >
+                    {isAscending ? <IoArrowUp /> : <IoArrowDown />}
+                </DirectionButton>
+            </SortRow>
+            {onHideOverdueChange && (
+                <ToggleRow>
+                    <ToggleButton
+                        type="button"
+                        onClick={() => onHideOverdueChange(!hideOverdue)}
+                    >
+                        {hideOverdue
+                            ? `Show overdue tasks (${overdueCount ?? 0} hidden)`
+                            : "Hide overdue tasks"}
+                    </ToggleButton>
+                </ToggleRow>
+            )}
         </PanelWrapper>
     );
 }
 
 const PanelWrapper = styled.div`
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
+    flex-direction: column;
     gap: 8px;
     max-width: 600px;
     padding-left: 28px;
     margin-bottom: 32px;
     font-size: 0.9rem;
+`;
+
+const SortRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
 
     @media screen and (max-width: 600px) {
         justify-content: flex-start;
+    }
+`;
+
+const ToggleRow = styled.div`
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    @media screen and (max-width: 600px) {
+        justify-content: flex-start;
+    }
+`;
+
+const ToggleButton = styled.button`
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--foreground);
+    font-size: 0.9rem;
+    text-decoration: underline;
+
+    &:hover {
+        cursor: pointer;
     }
 `;
 
