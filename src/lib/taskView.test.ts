@@ -85,13 +85,25 @@ describe("sortTasks", () => {
         expect(result.map((t) => t.id)).toEqual([2, 1]);
     });
 
-    it("breaks ties by due_date, then title, then id", () => {
-        const a = makeTask({ id: 3, title: "Same", due_date: "2026-01-01" });
-        const b = makeTask({ id: 1, title: "Same", due_date: "2026-01-01" });
-        const c = makeTask({ id: 2, title: "Same", due_date: "2026-01-01" });
+    it("breaks ties on the primary key by due_date before title", () => {
+        // Title order alone would put b ("Apple") before a ("Zebra"); due_date
+        // must win the tie-break for a to still come first.
+        const a = makeTask({ id: 1, title: "Zebra", due_date: "2026-01-01" });
+        const b = makeTask({ id: 2, title: "Apple", due_date: "2026-02-01" });
 
-        const result = sortTasks([a, b, c], { key: "category", direction: "asc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([1, 2, 3]);
+        const result = sortTasks([a, b], { key: "category", direction: "asc" }, lookups);
+        expect(result.map((t) => t.id)).toEqual([1, 2]);
+    });
+
+    it("breaks ties on due_date by title before id", () => {
+        // Id order alone would put e (id 2) before c (id 5); title must win
+        // the tie-break so the "Banana" task sorts after both "Apple" tasks.
+        const c = makeTask({ id: 5, title: "Apple", due_date: "2026-01-01" });
+        const d = makeTask({ id: 1, title: "Apple", due_date: "2026-01-01" });
+        const e = makeTask({ id: 2, title: "Banana", due_date: "2026-01-01" });
+
+        const result = sortTasks([c, d, e], { key: "category", direction: "asc" }, lookups);
+        expect(result.map((t) => t.id)).toEqual([1, 5, 2]);
     });
 });
 

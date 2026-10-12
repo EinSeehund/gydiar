@@ -34,7 +34,7 @@ beforeEach(() => {
 });
 
 describe("GET /api/tasks", () => {
-    it("returns 401 without querying the database when there is no session", async () => {
+    it("does not query the database when there is no session", async () => {
         mockedRequireUser.mockResolvedValue(null);
         const { req, res } = mockRequestResponse({ method: "GET" });
 
@@ -80,7 +80,9 @@ describe("POST /api/tasks", () => {
 
     it("returns 400 when a referenced category is not owned by the user", async () => {
         mockedRequireUser.mockResolvedValue(user as never);
-        mockedOwnsRow.mockResolvedValue(false);
+        mockedOwnsRow.mockImplementation(
+            async (table) => table !== "categories",
+        );
         const { req, res } = mockRequestResponse({
             method: "POST",
             body: { taskTitle: "Buy milk", category_id: 999 },
