@@ -8,7 +8,7 @@
 
 - `npm run dev` / `npm run build` / `npm run start`
 - `npm run lint` runs ESLint (flat config with `eslint-config-next`, core-web-vitals and typescript).
-- There is no test suite.
+- `npm run test` runs the Vitest suite once; `npm run test:watch` runs it in watch mode.
 - There is no migration tool. Apply the SQL files in `migrations/` by hand against `DATABASE_URL`.
 
 ## Stack
