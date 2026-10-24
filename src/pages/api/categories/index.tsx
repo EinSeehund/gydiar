@@ -1,9 +1,15 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
-import slugify from "slugify";
 import { requireUser } from "@/lib/session";
 import { isUniqueViolation } from "@/lib/db-helpers";
 import { parseText, parseColor, MAX_CATEGORY_NAME_LENGTH } from "@/lib/validation";
+import {
+    getOrCreateDataKey,
+    encryptField,
+    decryptField,
+    hashField,
+    generateSlug,
+} from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -14,13 +20,18 @@ export default async function handler(
 
     if (req.method === "GET") {
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             const result = await pool.query(
-                "SELECT * FROM categories WHERE user_id = $1 ORDER BY id",
+                "SELECT id, name, color, slug FROM categories WHERE user_id = $1 ORDER BY id",
                 [user.id],
             );
-            return res
-                .status(200)
-                .json({ success: true, categories: result.rows });
+            return res.status(200).json({
+                success: true,
+                categories: result.rows.map((row) => ({
+                    ...row,
+                    name: decryptField(row.name, dataKey),
+                })),
+            });
         } catch (error) {
             console.error("DB error:", error);
             return res
@@ -41,12 +52,19 @@ export default async function handler(
         }
 
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             await pool.query(
                 `
-                INSERT INTO "public"."categories" ("name", "color", "slug", "user_id")
-                VALUES ($1, $2, $3, $4)
+                INSERT INTO "public"."categories" ("name", "color", "slug", "name_hash", "user_id")
+                VALUES ($1, $2, $3, $4, $5)
             `,
-                [name, color, slugify(name), user.id],
+                [
+                    encryptField(name, dataKey),
+                    color,
+                    generateSlug(),
+                    hashField(name, dataKey),
+                    user.id,
+                ],
             );
             return res.status(200).json({
                 success: true,

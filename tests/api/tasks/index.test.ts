@@ -12,15 +12,22 @@ vi.mock("@/lib/session", () => ({
 vi.mock("@/lib/db-helpers", () => ({
     ownsRow: vi.fn(),
 }));
+vi.mock("@/lib/crypto", () => ({
+    getOrCreateDataKey: vi.fn(),
+    encryptField: vi.fn((plaintext) => plaintext),
+    decryptField: vi.fn((stored) => stored),
+}));
 
 import pool from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { ownsRow } from "@/lib/db-helpers";
+import { getOrCreateDataKey } from "@/lib/crypto";
 import handler from "@/pages/api/tasks/index";
 
 const mockedPool = vi.mocked(pool);
 const mockedRequireUser = vi.mocked(requireUser);
 const mockedOwnsRow = vi.mocked(ownsRow);
+const mockedGetOrCreateDataKey = vi.mocked(getOrCreateDataKey);
 
 const user = { id: "user-1" };
 
@@ -45,6 +52,7 @@ describe("GET /api/tasks", () => {
 
     it("returns the tasks for the current user on success", async () => {
         mockedRequireUser.mockResolvedValue(user as never);
+        mockedGetOrCreateDataKey.mockResolvedValue(Buffer.from("key"));
         mockedPool.query.mockResolvedValue({
             rows: [{ id: 1, title: "Buy milk" }],
         } as never);
@@ -101,6 +109,7 @@ describe("POST /api/tasks", () => {
     it("inserts the task and returns success", async () => {
         mockedRequireUser.mockResolvedValue(user as never);
         mockedOwnsRow.mockResolvedValue(true);
+        mockedGetOrCreateDataKey.mockResolvedValue(Buffer.from("key"));
         mockedPool.query.mockResolvedValue({ rows: [] } as never);
         const { req, res } = mockRequestResponse({
             method: "POST",

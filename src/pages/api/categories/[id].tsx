@@ -1,7 +1,9 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { isUniqueViolation } from "@/lib/db-helpers";
 import { parseText, parseColor, MAX_CATEGORY_NAME_LENGTH } from "@/lib/validation";
+import { getOrCreateDataKey, encryptField, hashField } from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -29,12 +31,19 @@ export default async function handler(
         }
 
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             const result = await pool.query(
                 `
                 UPDATE "public"."categories"
-                SET "name" = $1, "color" = $2
-                WHERE "id" = $3 AND "user_id" = $4`,
-                [name, color, id, user.id],
+                SET "name" = $1, "color" = $2, "name_hash" = $3
+                WHERE "id" = $4 AND "user_id" = $5`,
+                [
+                    encryptField(name, dataKey),
+                    color,
+                    hashField(name, dataKey),
+                    id,
+                    user.id,
+                ],
             );
 
             if (result.rowCount === 0) {
@@ -49,6 +58,12 @@ export default async function handler(
                 message: "Category successfully updated",
             });
         } catch (error) {
+            if (isUniqueViolation(error)) {
+                return res.status(409).json({
+                    success: false,
+                    error: "A category with this name already exists",
+                });
+            }
             console.error("DB error:", error);
             return res
                 .status(500)

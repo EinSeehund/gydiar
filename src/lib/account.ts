@@ -40,6 +40,10 @@ export async function deleteUserData(userId: string): Promise<void> {
         await client.query("DELETE FROM projects WHERE user_id = $1", [
             userId,
         ]);
+        await client.query(
+            "DELETE FROM user_encryption_keys WHERE user_id = $1",
+            [userId],
+        );
         await client.query("COMMIT");
     } catch (error) {
         await client.query("ROLLBACK");

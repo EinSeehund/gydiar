@@ -1,6 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
-import slugify from "slugify";
 import { requireUser } from "@/lib/session";
 import { isUniqueViolation } from "@/lib/db-helpers";
 import {
@@ -10,6 +9,13 @@ import {
     MAX_PROJECT_NAME_LENGTH,
     MAX_DESCRIPTION_LENGTH,
 } from "@/lib/validation";
+import {
+    getOrCreateDataKey,
+    encryptField,
+    decryptField,
+    hashField,
+    generateSlug,
+} from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -20,13 +26,22 @@ export default async function handler(
 
     if (req.method === "GET") {
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             const result = await pool.query(
-                "SELECT * FROM projects WHERE user_id = $1 ORDER BY id",
+                "SELECT id, name, completed_at, slug, description FROM projects WHERE user_id = $1 ORDER BY id",
                 [user.id],
             );
-            return res
-                .status(200)
-                .json({ success: true, projects: result.rows });
+            return res.status(200).json({
+                success: true,
+                projects: result.rows.map((row) => ({
+                    ...row,
+                    name: decryptField(row.name, dataKey),
+                    description:
+                        row.description === null
+                            ? null
+                            : decryptField(row.description, dataKey),
+                })),
+            });
         } catch (error) {
             console.error("DB error:", error);
             return res
@@ -51,12 +66,20 @@ export default async function handler(
         }
 
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             await pool.query(
                 `
-                INSERT INTO "public"."projects" ("name", "completed_at", "slug", "description", "user_id")
-                VALUES ($1, $2, $3, $4, $5)
+                INSERT INTO "public"."projects" ("name", "completed_at", "slug", "description", "name_hash", "user_id")
+                VALUES ($1, $2, $3, $4, $5, $6)
                 `,
-                [name, completed_at, slugify(name), description, user.id],
+                [
+                    encryptField(name, dataKey),
+                    completed_at,
+                    generateSlug(),
+                    description === null ? null : encryptField(description, dataKey),
+                    hashField(name, dataKey),
+                    user.id,
+                ],
             );
             return res.status(201).json({
                 success: true,
