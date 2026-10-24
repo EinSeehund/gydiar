@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
   compiler: {
     styledComponents: true,
   },
+  experimental: {
+    agentUpgrade: "security",
+  },
 };
 
 export default nextConfig;
