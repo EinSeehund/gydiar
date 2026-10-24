@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { parseDueDate, parseText, MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
 import { requireUser } from "@/lib/session";
 import { ownsRow } from "@/lib/db-helpers";
+import { getOrCreateDataKey, encryptField, decryptField } from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -53,6 +54,7 @@ export default async function handler(
         }
 
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             let result;
             if (dueDate) {
                 result = await pool.query(
@@ -155,7 +157,13 @@ export default async function handler(
                     [user.id],
                 );
             }
-            return res.status(200).json({ success: true, tasks: result.rows });
+            return res.status(200).json({
+                success: true,
+                tasks: result.rows.map((row) => ({
+                    ...row,
+                    title: decryptField(row.title, dataKey),
+                })),
+            });
         } catch (error) {
             console.error("DB error:", error);
             return res
@@ -191,12 +199,13 @@ export default async function handler(
                     .json({ success: false, error: "Invalid reference" });
             }
 
+            const dataKey = await getOrCreateDataKey(user.id);
             await pool.query(
                 `INSERT INTO "public"."tasks"
                     ("title", "parent_task_id", "category_id", "project_id", "due_date", "user_id")
                 VALUES ($1, $2, $3, $4, $5, $6)`,
                 [
-                    title,
+                    encryptField(title, dataKey),
                     parent_task_id,
                     category_id,
                     project_id,

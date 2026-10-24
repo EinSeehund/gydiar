@@ -54,6 +54,7 @@ cp .env.example .env.local
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth app credentials |
 | `RESEND_API_KEY` | Resend API key, used to send verification and notification emails |
 | `EMAIL_FROM` | *(optional)* sender address; defaults to the Resend onboarding sender |
+| `ENCRYPTION_MASTER_KEY` | 64 hex chars (32 bytes), e.g. `openssl rand -hex 32`. Encrypts task/category/project text at rest; losing it makes that data permanently unrecoverable |
 
 ### 3. Set up the database
 
@@ -70,7 +71,16 @@ Then apply the app's own migrations, which create the `categories`, `projects` a
 ```bash
 psql "$DATABASE_URL" -f migrations/000_initial_schema.sql
 psql "$DATABASE_URL" -f migrations/001_add_due_date_to_tasks.sql
+psql "$DATABASE_URL" -f migrations/002_add_field_encryption.sql
 ```
+
+`002_add_field_encryption.sql` adds encryption support but leaves `categories`/`projects` `name_hash` columns nullable. On a fresh database there are no existing rows to backfill, so apply `003_enforce_name_hash.sql` right away too:
+
+```bash
+psql "$DATABASE_URL" -f migrations/003_enforce_name_hash.sql
+```
+
+(On a database that already has data, run `scripts/backfill-encryption.mjs` between those two migrations instead — see the comment at the top of that script.)
 
 Any future `migrations/*.sql` files should be applied the same way, in filename order.
 

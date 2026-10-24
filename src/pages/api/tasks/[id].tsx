@@ -3,6 +3,7 @@ import pool from "@/lib/db";
 import { requireUser } from "@/lib/session";
 import { ownsRow } from "@/lib/db-helpers";
 import { parseDueDate, parseText, MAX_TASK_TITLE_LENGTH } from "@/lib/validation";
+import { getOrCreateDataKey, encryptField } from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -54,12 +55,13 @@ export default async function handler(
                     .json({ success: false, error: "Invalid reference" });
             }
 
+            const dataKey = await getOrCreateDataKey(user.id);
             const result = await pool.query(
                 `
                 UPDATE "public"."tasks"
                 SET "title" = $1, "category_id" = $2, "project_id" = $3, "due_date" = $4
                 WHERE "id" = $5 AND "user_id" = $6`,
-                [title, category_id, project_id, dueDate, id, user.id],
+                [encryptField(title, dataKey), category_id, project_id, dueDate, id, user.id],
             );
 
             if (result.rowCount === 0) {

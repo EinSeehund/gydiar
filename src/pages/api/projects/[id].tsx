@@ -1,6 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import pool from "@/lib/db";
 import { requireUser } from "@/lib/session";
+import { isUniqueViolation } from "@/lib/db-helpers";
 import {
     parseText,
     parseOptionalText,
@@ -8,6 +9,7 @@ import {
     MAX_PROJECT_NAME_LENGTH,
     MAX_DESCRIPTION_LENGTH,
 } from "@/lib/validation";
+import { getOrCreateDataKey, encryptField, hashField } from "@/lib/crypto";
 
 export default async function handler(
     req: NextApiRequest,
@@ -39,12 +41,20 @@ export default async function handler(
         }
 
         try {
+            const dataKey = await getOrCreateDataKey(user.id);
             const result = await pool.query(
                 `
                 UPDATE "public"."projects"
-                SET "name" = $1, "completed_at" = $2, "description" = $3
-                WHERE "id" = $4 AND "user_id" = $5`,
-                [name, completed_at, description, id, user.id],
+                SET "name" = $1, "completed_at" = $2, "description" = $3, "name_hash" = $4
+                WHERE "id" = $5 AND "user_id" = $6`,
+                [
+                    encryptField(name, dataKey),
+                    completed_at,
+                    description === null ? null : encryptField(description, dataKey),
+                    hashField(name, dataKey),
+                    id,
+                    user.id,
+                ],
             );
 
             if (result.rowCount === 0) {
@@ -59,6 +69,12 @@ export default async function handler(
                 message: "Project successfully updated",
             });
         } catch (error) {
+            if (isUniqueViolation(error)) {
+                return res.status(409).json({
+                    success: false,
+                    error: "A project with this name already exists",
+                });
+            }
             console.error("DB error:", error);
             return res.status(500).json({
                 success: false,

@@ -51,4 +51,6 @@
 
 ## Environment
 
-Set these in `.env.local` (see `.env.example`): `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`. `EMAIL_FROM` is optional and defaults to the Resend onboarding sender.
+Set these in `.env.local` (see `.env.example`): `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `RESEND_API_KEY`, `ENCRYPTION_MASTER_KEY`. `EMAIL_FROM` is optional and defaults to the Resend onboarding sender.
+
+`ENCRYPTION_MASTER_KEY` is 64 hex characters (32 bytes), generated with `openssl rand -hex 32`. It wraps each user's per-user data key (`src/lib/crypto.ts`), which encrypts `tasks.title`, `categories.name`, `projects.name`/`description` at rest. Losing it makes all of that data permanently unrecoverable — there is no recovery path by design — so store it with at least the same care as `DATABASE_URL`, and not in the same place/access tier as it.
