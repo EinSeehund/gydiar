@@ -33,6 +33,12 @@
 - `GET /api/tasks` accepts `?category=`, `?project=`, `?due=` or `?from=&to=`. A recursive CTE returns subtasks too, and `withChildren` (`src/lib/tasks.ts`) nests them.
 - `PATCH /api/tasks/[id]` toggles status. Its body is the raw JSON string `"open"` or `"done"`. `PATCH /api/tasks/[id]/due-date` is used for calendar drag-and-drop.
 - Tasks are sorted on the client, not in SQL. `TaskList` passes the tasks through `applyTaskView` (`src/lib/taskView.ts`), which is also where future filters should go. The view state lives in the URL query (`?sort=&dir=`) through `useTaskView`. `TaskList` renders `components/TaskSortPanel`, so every page with a task list gets sorting automatically.
+- **Routines** are recurring items, stored separately from tasks (`routines`, `routine_completions`).
+  - A routine stores only its rule (`freq`, `interval`, `weekdays`, `month_day`, `year_month`, `anchor_date`). Monthly and yearly rules use `month_day` (1–31, or -1 for the last day), and yearly rules also use `year_month` (1–12). Days past a month's length fall back to its last day. Intervals count from the anchor's week, month or year. Occurrences are computed in `src/lib/recurrence.ts` and never stored. A `routine_completions` row means that occurrence is done.
+  - `GET /api/routines/occurrences` has two modes. `?due=` is for Today and mirrors `GET /api/tasks?due=`. `?from=&to=&today=` covers ranges up to 400 days.
+  - `keep_open` routines keep only their latest missed occurrence open, so it shows as overdue. All other past unchecked occurrences have status `missed`.
+  - `TaskList` takes optional `routineOccurrences` and works on a `ListEntry` union (`src/lib/taskView.ts`), so occurrences sort and filter together with tasks. They appear on `/today`, `/week`, `/month` and `/calendar`, but not in the `/`, category or project lists.
+  - "Hide routines", like "Hide overdue", lives in localStorage (`useTaskView`). `/calendar` shares the same setting.
 - Auth pages use `getServerSideProps = redirectIfAuthenticated`. `_app.tsx` renders `<Navigation>` only when there is a session.
 - Theme: an inline script in `_document.tsx` sets `data-theme` on `<html>` from `localStorage.theme` or `prefers-color-scheme`. The CSS variables are in `src/styles/globals.css`, and the switch is `components/ThemeToggle`.
 

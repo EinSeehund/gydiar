@@ -158,6 +158,16 @@ export default function Navigation({ userName }: NavigationProps) {
                     >
                         All Tasks
                     </Link>
+                    <Link
+                        href="/routines"
+                        style={linkStyle("/routines")}
+                        aria-current={
+                            currentPath === "/routines" ? "page" : undefined
+                        }
+                        onClick={toggleNavMobile}
+                    >
+                        Routines
+                    </Link>
                     <StyledHr />
                     <h3>Categories</h3>
                     {categories?.map((category: Category) => (

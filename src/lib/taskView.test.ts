@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import type { TaskWithChildren } from "@/types/task";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
+import type { RoutineOccurrence } from "@/types/routine";
 import {
     applyTaskView,
     countOverdueTasks,
+    countRoutines,
     sortTasks,
+    type ListEntry,
     type TaskLookups,
 } from "./taskView";
 
@@ -23,6 +26,30 @@ function makeTask(overrides: Partial<TaskWithChildren>): TaskWithChildren {
         children: [],
         ...overrides,
     };
+}
+
+function makeOccurrence(
+    overrides: Partial<RoutineOccurrence>,
+): RoutineOccurrence {
+    return {
+        routine_id: 1,
+        title: "Routine",
+        category_id: null,
+        due_date: "2026-01-01",
+        status: "open",
+        ...overrides,
+    };
+}
+
+function asEntries(tasks: TaskWithChildren[]): ListEntry[] {
+    return tasks.map((task) => ({ kind: "task", task }));
+}
+
+// Task ids, or "r<routine_id>" for routine occurrences.
+function ids(entries: ListEntry[]): (number | string)[] {
+    return entries.map((entry) =>
+        entry.kind === "task" ? entry.task.id : `r${entry.occurrence.routine_id}`,
+    );
 }
 
 const categories: Category[] = [
@@ -43,8 +70,8 @@ describe("sortTasks", () => {
         const b = makeTask({ id: 2, due_date: "2026-01-01" });
         const c = makeTask({ id: 3, due_date: null });
 
-        const result = sortTasks([a, b, c], { key: "date", direction: "asc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([2, 1, 3]);
+        const result = sortTasks(asEntries([a, b, c]), { key: "date", direction: "asc" }, lookups);
+        expect(ids(result)).toEqual([2, 1, 3]);
     });
 
     it("sorts by date descending, nulls still last", () => {
@@ -52,8 +79,8 @@ describe("sortTasks", () => {
         const b = makeTask({ id: 2, due_date: "2026-01-01" });
         const c = makeTask({ id: 3, due_date: null });
 
-        const result = sortTasks([a, b, c], { key: "date", direction: "desc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([1, 2, 3]);
+        const result = sortTasks(asEntries([a, b, c]), { key: "date", direction: "desc" }, lookups);
+        expect(ids(result)).toEqual([1, 2, 3]);
     });
 
     it("sorts by category name, nulls last regardless of direction", () => {
@@ -61,11 +88,11 @@ describe("sortTasks", () => {
         const b = makeTask({ id: 2, category_id: 1 }); // Work
         const c = makeTask({ id: 3, category_id: null });
 
-        const asc = sortTasks([a, b, c], { key: "category", direction: "asc" }, lookups);
-        expect(asc.map((t) => t.id)).toEqual([1, 2, 3]);
+        const asc = sortTasks(asEntries([a, b, c]), { key: "category", direction: "asc" }, lookups);
+        expect(ids(asc)).toEqual([1, 2, 3]);
 
-        const desc = sortTasks([a, b, c], { key: "category", direction: "desc" }, lookups);
-        expect(desc.map((t) => t.id)).toEqual([2, 1, 3]);
+        const desc = sortTasks(asEntries([a, b, c]), { key: "category", direction: "desc" }, lookups);
+        expect(ids(desc)).toEqual([2, 1, 3]);
     });
 
     it("sorts by project name, nulls last regardless of direction", () => {
@@ -73,16 +100,16 @@ describe("sortTasks", () => {
         const b = makeTask({ id: 2, project_id: 1 }); // Launch
         const c = makeTask({ id: 3, project_id: null });
 
-        const asc = sortTasks([a, b, c], { key: "project", direction: "asc" }, lookups);
-        expect(asc.map((t) => t.id)).toEqual([1, 2, 3]);
+        const asc = sortTasks(asEntries([a, b, c]), { key: "project", direction: "asc" }, lookups);
+        expect(ids(asc)).toEqual([1, 2, 3]);
     });
 
     it("sorts by title", () => {
         const a = makeTask({ id: 1, title: "Zebra" });
         const b = makeTask({ id: 2, title: "Apple" });
 
-        const result = sortTasks([a, b], { key: "title", direction: "asc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([2, 1]);
+        const result = sortTasks(asEntries([a, b]), { key: "title", direction: "asc" }, lookups);
+        expect(ids(result)).toEqual([2, 1]);
     });
 
     it("breaks ties on the primary key by due_date before title", () => {
@@ -91,8 +118,8 @@ describe("sortTasks", () => {
         const a = makeTask({ id: 1, title: "Zebra", due_date: "2026-01-01" });
         const b = makeTask({ id: 2, title: "Apple", due_date: "2026-02-01" });
 
-        const result = sortTasks([a, b], { key: "category", direction: "asc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([1, 2]);
+        const result = sortTasks(asEntries([a, b]), { key: "category", direction: "asc" }, lookups);
+        expect(ids(result)).toEqual([1, 2]);
     });
 
     it("breaks ties on due_date by title before id", () => {
@@ -102,8 +129,8 @@ describe("sortTasks", () => {
         const d = makeTask({ id: 1, title: "Apple", due_date: "2026-01-01" });
         const e = makeTask({ id: 2, title: "Banana", due_date: "2026-01-01" });
 
-        const result = sortTasks([c, d, e], { key: "category", direction: "asc" }, lookups);
-        expect(result.map((t) => t.id)).toEqual([1, 5, 2]);
+        const result = sortTasks(asEntries([c, d, e]), { key: "category", direction: "asc" }, lookups);
+        expect(ids(result)).toEqual([1, 5, 2]);
     });
 });
 
@@ -113,24 +140,90 @@ describe("countOverdueTasks / applyTaskView", () => {
     const upcoming = makeTask({ id: 3, due_date: "2999-01-01", status: "open" });
 
     it("counts only overdue, open tasks", () => {
-        expect(countOverdueTasks([overdueOpen, overdueDone, upcoming])).toBe(1);
+        expect(countOverdueTasks(asEntries([overdueOpen, overdueDone, upcoming]))).toBe(1);
     });
 
     it("hides overdue tasks when hideOverdue is true", () => {
         const result = applyTaskView(
-            [overdueOpen, overdueDone, upcoming],
-            { sort: { key: "date", direction: "asc" }, hideOverdue: true },
+            asEntries([overdueOpen, overdueDone, upcoming]),
+            {
+                sort: { key: "date", direction: "asc" },
+                hideOverdue: true,
+                hideRoutines: false,
+            },
             lookups,
         );
-        expect(result.map((t) => t.id).sort()).toEqual([2, 3]);
+        expect(ids(result).sort()).toEqual([2, 3]);
     });
 
     it("keeps overdue tasks when hideOverdue is false", () => {
         const result = applyTaskView(
-            [overdueOpen, overdueDone, upcoming],
-            { sort: { key: "date", direction: "asc" }, hideOverdue: false },
+            asEntries([overdueOpen, overdueDone, upcoming]),
+            {
+                sort: { key: "date", direction: "asc" },
+                hideOverdue: false,
+                hideRoutines: false,
+            },
             lookups,
         );
-        expect(result.map((t) => t.id).sort()).toEqual([1, 2, 3]);
+        expect(ids(result).sort()).toEqual([1, 2, 3]);
+    });
+});
+
+describe("routine occurrences in the list", () => {
+    const task = makeTask({ id: 1, title: "Task", due_date: "2999-01-02" });
+    const early = makeOccurrence({ routine_id: 7, due_date: "2999-01-01" });
+    const overdue = makeOccurrence({
+        routine_id: 8,
+        due_date: "2000-01-01",
+        status: "open",
+    });
+    const missed = makeOccurrence({
+        routine_id: 9,
+        due_date: "2000-01-01",
+        status: "missed",
+    });
+    const entries: ListEntry[] = [
+        ...asEntries([task]),
+        { kind: "routine", occurrence: early },
+        { kind: "routine", occurrence: overdue },
+        { kind: "routine", occurrence: missed },
+    ];
+
+    it("sorts occurrences together with tasks", () => {
+        const result = sortTasks(
+            entries,
+            { key: "date", direction: "asc" },
+            lookups,
+        );
+        expect(ids(result)).toEqual(["r8", "r9", "r7", 1]);
+    });
+
+    it("puts occurrences last when sorting by project", () => {
+        const withProject = makeTask({ id: 2, project_id: 1 });
+        const result = sortTasks(
+            [{ kind: "routine", occurrence: early }, ...asEntries([withProject])],
+            { key: "project", direction: "asc" },
+            lookups,
+        );
+        expect(ids(result)).toEqual([2, "r7"]);
+    });
+
+    it("counts open past occurrences as overdue, but not missed ones", () => {
+        expect(countOverdueTasks(entries)).toBe(1);
+    });
+
+    it("hides all occurrences when hideRoutines is true", () => {
+        const result = applyTaskView(
+            entries,
+            {
+                sort: { key: "date", direction: "asc" },
+                hideOverdue: false,
+                hideRoutines: true,
+            },
+            lookups,
+        );
+        expect(ids(result)).toEqual([1]);
+        expect(countRoutines(entries)).toBe(3);
     });
 });

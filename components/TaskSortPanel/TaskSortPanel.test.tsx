@@ -75,4 +75,46 @@ describe("TaskSortPanel", () => {
             screen.getByRole("button", { name: "Show overdue tasks (3 hidden)" }),
         ).toBeInTheDocument();
     });
+
+    it("shows the hide-routines toggle only when its handler is passed", async () => {
+        const user = userEvent.setup();
+        const onHideRoutinesChange = vi.fn();
+
+        const { rerender } = render(
+            <TaskSortPanel
+                sort={{ key: "date", direction: "asc" }}
+                onChange={vi.fn()}
+                availableKeys={["date"]}
+            />,
+        );
+        expect(screen.queryByRole("button", { name: "Hide routines" })).toBeNull();
+
+        rerender(
+            <TaskSortPanel
+                sort={{ key: "date", direction: "asc" }}
+                onChange={vi.fn()}
+                availableKeys={["date"]}
+                hideRoutines={false}
+                onHideRoutinesChange={onHideRoutinesChange}
+                routineCount={5}
+            />,
+        );
+        await user.click(screen.getByRole("button", { name: "Hide routines" }));
+        expect(onHideRoutinesChange).toHaveBeenCalledWith(true);
+
+        rerender(
+            <TaskSortPanel
+                sort={{ key: "date", direction: "asc" }}
+                onChange={vi.fn()}
+                availableKeys={["date"]}
+                hideRoutines={true}
+                onHideRoutinesChange={onHideRoutinesChange}
+                routineCount={5}
+            />,
+        );
+        await user.click(
+            screen.getByRole("button", { name: "Show routines (5 hidden)" }),
+        );
+        expect(onHideRoutinesChange).toHaveBeenLastCalledWith(false);
+    });
 });

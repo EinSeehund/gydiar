@@ -24,6 +24,10 @@ describe("isOverdue", () => {
         expect(isOverdue("2026-03-01", "done")).toBe(false);
     });
 
+    it("returns false for a past routine occurrence that was missed", () => {
+        expect(isOverdue("2026-03-01", "missed")).toBe(false);
+    });
+
     it("returns false when there is no due date", () => {
         expect(isOverdue(null, "open")).toBe(false);
     });

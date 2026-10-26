@@ -3,8 +3,12 @@ import {
     MAX_TASK_TITLE_LENGTH,
     parseColor,
     parseDueDate,
+    parseKeepOpen,
     parseOptionalText,
+    parseRecurrence,
     parseText,
+    parseTimestamp,
+    recurrenceError,
 } from "./validation";
 
 describe("parseDueDate", () => {
@@ -128,5 +132,143 @@ describe("parseColor", () => {
 
     it("throws for a short hex color", () => {
         expect(() => parseColor("#fff")).toThrow("Invalid color");
+    });
+});
+
+describe("parseRecurrence", () => {
+    it("accepts a daily rule and drops weekdays", () => {
+        expect(
+            parseRecurrence({ freq: "day", interval: 2, weekdays: [1] }),
+        ).toEqual({ freq: "day", interval: 2, weekdays: null, month_day: null, year_month: null });
+    });
+
+    it("sorts and de-duplicates weekdays for a weekly rule", () => {
+        expect(
+            parseRecurrence({ freq: "week", interval: 1, weekdays: [4, 1, 4] }),
+        ).toEqual({ freq: "week", interval: 1, weekdays: [1, 4], month_day: null, year_month: null });
+    });
+
+    it("throws for a weekly rule without weekdays", () => {
+        expect(() =>
+            parseRecurrence({ freq: "week", interval: 1, weekdays: [] }),
+        ).toThrow("Select at least one weekday");
+    });
+
+    it("throws for weekdays outside 1-7", () => {
+        expect(() =>
+            parseRecurrence({ freq: "week", interval: 1, weekdays: [0] }),
+        ).toThrow("Select at least one weekday");
+    });
+
+    it("throws for an unknown unit", () => {
+        expect(() =>
+            parseRecurrence({ freq: "hour", interval: 1, weekdays: null }),
+        ).toThrow("Invalid recurrence unit");
+    });
+
+    it("throws for an interval outside 1-99 or a non-integer", () => {
+        for (const interval of [0, 100, 1.5, "2"]) {
+            expect(() =>
+                parseRecurrence({ freq: "day", interval, weekdays: null }),
+            ).toThrow("Interval must be a whole number between 1 and 99");
+        }
+    });
+
+    it("accepts a monthly rule with a day or -1 for the last day", () => {
+        expect(
+            parseRecurrence({ freq: "month", interval: 1, weekdays: [1], month_day: 31, year_month: null }),
+        ).toEqual({ freq: "month", interval: 1, weekdays: null, month_day: 31, year_month: null });
+        expect(
+            parseRecurrence({ freq: "month", interval: 1, month_day: -1, year_month: null }),
+        ).toEqual({ freq: "month", interval: 1, weekdays: null, month_day: -1, year_month: null });
+    });
+
+    it("throws for a monthly rule without a valid day", () => {
+        for (const month_day of [undefined, 0, 32, -2, 1.5]) {
+            expect(() =>
+                parseRecurrence({ freq: "month", interval: 1, month_day }),
+            ).toThrow("Choose a day between 1 and 31");
+        }
+    });
+
+    it("drops month_day and year_month for daily rules", () => {
+        expect(
+            parseRecurrence({ freq: "day", interval: 1, month_day: 5, year_month: 3 }),
+        ).toEqual({ freq: "day", interval: 1, weekdays: null, month_day: null, year_month: null });
+    });
+
+    it("accepts a yearly rule with month and day", () => {
+        expect(
+            parseRecurrence({ freq: "year", interval: 1, month_day: 29, year_month: 2 }),
+        ).toEqual({ freq: "year", interval: 1, weekdays: null, month_day: 29, year_month: 2 });
+        expect(
+            parseRecurrence({ freq: "year", interval: 1, month_day: -1, year_month: 4 }),
+        ).toEqual({ freq: "year", interval: 1, weekdays: null, month_day: -1, year_month: 4 });
+    });
+
+    it("throws for a yearly rule without a valid month", () => {
+        for (const year_month of [undefined, 0, 13, 1.5]) {
+            expect(() =>
+                parseRecurrence({ freq: "year", interval: 1, month_day: 1, year_month }),
+            ).toThrow("Choose a month");
+        }
+    });
+
+    it("rejects days that never exist in the chosen month", () => {
+        expect(() =>
+            parseRecurrence({ freq: "year", interval: 1, month_day: 31, year_month: 4 }),
+        ).toThrow("Choose a day between 1 and 30");
+        expect(() =>
+            parseRecurrence({ freq: "year", interval: 1, month_day: 30, year_month: 2 }),
+        ).toThrow("Choose a day between 1 and 29");
+    });
+
+    it("throws for a missing rule", () => {
+        expect(() => parseRecurrence(undefined)).toThrow("Recurrence is required");
+    });
+});
+
+describe("parseKeepOpen", () => {
+    it("accepts booleans", () => {
+        expect(parseKeepOpen(true)).toBe(true);
+        expect(parseKeepOpen(false)).toBe(false);
+    });
+
+    it("throws when no choice was made", () => {
+        expect(() => parseKeepOpen(undefined)).toThrow(
+            "Choose what happens to missed occurrences",
+        );
+    });
+});
+
+describe("recurrenceError", () => {
+    it("returns null for a valid rule and the message otherwise", () => {
+        expect(
+            recurrenceError({ freq: "day", interval: 1, weekdays: null, month_day: null, year_month: null }),
+        ).toBeNull();
+        expect(
+            recurrenceError({ freq: "week", interval: 1, weekdays: [], month_day: null, year_month: null }),
+        ).toBe("Select at least one weekday");
+    });
+});
+
+describe("parseTimestamp", () => {
+    it("returns undefined for undefined", () => {
+        expect(parseTimestamp(undefined)).toBeUndefined();
+    });
+
+    it("accepts ISO timestamps with Z or an offset", () => {
+        expect(parseTimestamp("2026-10-25T22:00:00.000Z")).toBe(
+            "2026-10-25T22:00:00.000Z",
+        );
+        expect(parseTimestamp("2026-10-26T00:00:00+02:00")).toBe(
+            "2026-10-26T00:00:00+02:00",
+        );
+    });
+
+    it("throws for dates without time or zone, and for SQL-ish input", () => {
+        for (const value of ["2026-10-26", "2026-10-26T00:00:00", "now()", 0]) {
+            expect(() => parseTimestamp(value)).toThrow("Invalid timestamp");
+        }
     });
 });
