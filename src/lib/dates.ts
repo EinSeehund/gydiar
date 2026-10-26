@@ -5,6 +5,7 @@ export function formatDueDate(dueDate: string): string {
 }
 
 export function isOverdue(dueDate: string | null, status: string): boolean {
-    if (!dueDate || status === "done") return false; 
+    // "missed" is a past routine occurrence that no longer counts as due.
+    if (!dueDate || status === "done" || status === "missed") return false;
     return isBefore(parseISO(dueDate), startOfToday());
 }

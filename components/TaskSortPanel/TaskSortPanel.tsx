@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { IoArrowDown, IoArrowUp } from "react-icons/io5";
 import styled from "styled-components";
+import HideRoutinesToggle from "../HideRoutinesToggle/HideRoutinesToggle";
 import {
     SORT_OPTIONS,
     isSortKey,
@@ -15,6 +16,9 @@ type TaskSortPanelProps = {
     hideOverdue?: boolean;
     onHideOverdueChange?: (hideOverdue: boolean) => void;
     overdueCount?: number;
+    hideRoutines?: boolean;
+    onHideRoutinesChange?: (hideRoutines: boolean) => void;
+    routineCount?: number;
 };
 
 export default function TaskSortPanel({
@@ -24,6 +28,9 @@ export default function TaskSortPanel({
     hideOverdue,
     onHideOverdueChange,
     overdueCount,
+    hideRoutines,
+    onHideRoutinesChange,
+    routineCount,
 }: TaskSortPanelProps): JSX.Element {
     const isAscending = sort.direction === "asc";
     const directionLabel = isAscending ? "Ascending" : "Descending";
@@ -74,6 +81,15 @@ export default function TaskSortPanel({
                             ? `Show overdue tasks (${overdueCount ?? 0} hidden)`
                             : "Hide overdue tasks"}
                     </ToggleButton>
+                </ToggleRow>
+            )}
+            {onHideRoutinesChange && (
+                <ToggleRow>
+                    <HideRoutinesToggle
+                        hidden={hideRoutines ?? false}
+                        hiddenCount={routineCount ?? 0}
+                        onChange={onHideRoutinesChange}
+                    />
                 </ToggleRow>
             )}
         </PanelWrapper>

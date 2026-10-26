@@ -1,7 +1,7 @@
 import pool from "./db";
 
 export async function ownsRow(
-    table: "tasks" | "categories" | "projects",
+    table: "tasks" | "categories" | "projects" | "routines",
     id: unknown,
     userId: string,
 ) {

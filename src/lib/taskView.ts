@@ -1,4 +1,5 @@
 import type { TaskWithChildren } from "@/types/task";
+import type { RoutineOccurrence } from "@/types/routine";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
 import { isOverdue } from "@/lib/dates";
@@ -14,7 +15,33 @@ export type TaskSort = {
 export type TaskView = {
     sort: TaskSort;
     hideOverdue: boolean;
+    hideRoutines: boolean;
 };
+
+// Task lists render tasks and routine occurrences side by side.
+export type ListEntry =
+    | { kind: "task"; task: TaskWithChildren }
+    | { kind: "routine"; occurrence: RoutineOccurrence };
+
+type EntryFields = {
+    title: string;
+    due_date: string | null;
+    category_id: number | null;
+    project_id: number | null;
+    status: string;
+};
+
+function entryFields(entry: ListEntry): EntryFields {
+    return entry.kind === "task"
+        ? entry.task
+        : { ...entry.occurrence, project_id: null };
+}
+
+export function entryKey(entry: ListEntry): string {
+    return entry.kind === "task"
+        ? `task-${entry.task.id}`
+        : `routine-${entry.occurrence.routine_id}-${entry.occurrence.due_date}`;
+}
 
 export type TaskLookups = {
     categories: Category[];
@@ -30,6 +57,7 @@ export const SORT_OPTIONS: { key: SortKey; label: string }[] = [
 
 export const DEFAULT_SORT: TaskSort = { key: "date", direction: "asc" };
 export const DEFAULT_HIDE_OVERDUE = false;
+export const DEFAULT_HIDE_ROUTINES = false;
 
 export function isSortKey(value: unknown): value is SortKey {
     return SORT_OPTIONS.some((option) => option.key === value);
@@ -63,14 +91,14 @@ function compareNullable<T>(
 }
 
 export function sortTasks(
-    tasks: TaskWithChildren[],
+    entries: ListEntry[],
     sort: TaskSort,
     { categories, projects }: TaskLookups,
-): TaskWithChildren[] {
+): ListEntry[] {
     const categoryNames = new Map(categories.map((c) => [c.id, c.name]));
     const projectNames = new Map(projects.map((p) => [p.id, p.name]));
 
-    function sortValue(task: TaskWithChildren): string | null {
+    function sortValue(task: EntryFields): string | null {
         switch (sort.key) {
             case "date":
                 return task.due_date;
@@ -89,8 +117,10 @@ export function sortTasks(
 
     const comparePrimary = sort.key === "date" ? compareDates : compareText;
 
-    return [...tasks].sort(
-        (a, b) =>
+    return [...entries].sort((entryA, entryB) => {
+        const a = entryFields(entryA);
+        const b = entryFields(entryB);
+        return (
             compareNullable(
                 sortValue(a),
                 sortValue(b),
@@ -99,26 +129,34 @@ export function sortTasks(
             ) ||
             compareNullable(a.due_date, b.due_date, compareDates, "asc") ||
             compareText(a.title, b.title) ||
-            a.id - b.id,
-    );
+            compareText(entryKey(entryA), entryKey(entryB))
+        );
+    });
 }
 
-function isTaskOverdue(task: TaskWithChildren): boolean {
-    return isOverdue(task.due_date, task.status);
+function isEntryOverdue(entry: ListEntry): boolean {
+    const { due_date, status } = entryFields(entry);
+    return isOverdue(due_date, status);
 }
 
-export function countOverdueTasks(tasks: TaskWithChildren[]): number {
-    return tasks.filter(isTaskOverdue).length;
+export function countOverdueTasks(entries: ListEntry[]): number {
+    return entries.filter(isEntryOverdue).length;
+}
+
+export function countRoutines(entries: ListEntry[]): number {
+    return entries.filter((entry) => entry.kind === "routine").length;
 }
 
 // Single entry point for deriving the displayed list; add filtering here.
 export function applyTaskView(
-    tasks: TaskWithChildren[],
+    entries: ListEntry[],
     view: TaskView,
     lookups: TaskLookups,
-): TaskWithChildren[] {
-    const visibleTasks = view.hideOverdue
-        ? tasks.filter((task) => !isTaskOverdue(task))
-        : tasks;
-    return sortTasks(visibleTasks, view.sort, lookups);
+): ListEntry[] {
+    const visibleEntries = entries.filter(
+        (entry) =>
+            !(view.hideOverdue && isEntryOverdue(entry)) &&
+            !(view.hideRoutines && entry.kind === "routine"),
+    );
+    return sortTasks(visibleEntries, view.sort, lookups);
 }

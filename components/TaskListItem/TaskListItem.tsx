@@ -73,7 +73,7 @@ export default function TaskListItem({
                     $dueToday={isToday(task.due_date)}
                     $overdue={isOverdue(task.due_date, task.status)}
                 >
-                    Due date: {formatDueDate(task.due_date)}
+                    {formatDueDate(task.due_date)}
                     {isToday(task.due_date) && " (Today)"}
                     {isTomorrow(task.due_date) && " (Tomorrow)"}
                     {isOverdue(task.due_date, task.status) && " (Overdue)"}
@@ -96,14 +96,15 @@ export default function TaskListItem({
     );
 }
 
-const ListItem = styled.li`
+// Exported so routine rows reuse the exact task row look.
+export const ListItem = styled.li`
     font-size: 1rem;
     max-width: 600px;
     border-bottom: 1px dotted rgba(128, 128, 128, 0.5);
     padding-bottom: 10px;
 `;
 
-const TitleWrapper = styled.div`
+export const TitleWrapper = styled.div`
     display: flex;
     width: 100%;
 
@@ -132,7 +133,7 @@ const TitleWrapper = styled.div`
     }
 `;
 
-const TitleAndProject = styled.div`
+export const TitleAndProject = styled.div`
     display: flex;
 
     @media screen and (max-width: 992px) {
@@ -151,7 +152,7 @@ const ProjectTag = styled.span`
     }
 `;
 
-const CategoryTag = styled.span<{ $color: string }>`
+export const CategoryTag = styled.span<{ $color: string }>`
     display: flex;
     align-items: center;
     align-self: flex-start;
@@ -163,7 +164,7 @@ const CategoryTag = styled.span<{ $color: string }>`
     border-radius: 4px;
 `;
 
-const DueDate = styled.span<{ $overdue: boolean; $dueToday: boolean }>`
+export const DueDate = styled.span<{ $overdue: boolean; $dueToday: boolean }>`
     align-self: flex-end;
     font-size: small;
     padding-left: 28px;

@@ -7,7 +7,11 @@ import { useTasks } from "@/lib/hooks/useTasks";
 import { useCategories } from "@/lib/hooks/useCategories";
 import { useProjects } from "@/lib/hooks/useProjects";
 import useTaskEditor from "@/lib/hooks/useTaskEditor";
+import { useRoutines } from "@/lib/hooks/useRoutines";
+import { useRoutineOccurrences } from "@/lib/hooks/useRoutineOccurrences";
+import useRoutineEditor from "@/lib/hooks/useRoutineEditor";
 import TaskEditorModal from "../../components/TaskEditorModal/TaskEditorModal";
+import RoutineEditorModal from "../../components/RoutineEditorModal/RoutineEditorModal";
 import TaskList from "../../components/TaskList/TaskList";
 import ButtonPrimary from "../../components/ButtonPrimary/ButtonPrimary";
 import LoadingSpinner from "../../components/LoadingSpinner/LoadingSpinner";
@@ -35,6 +39,17 @@ const TodayPage: NextPage = ({}): JSX.Element => {
     } = editor;
 
     const {
+        data: OccurrencesFetch,
+        error: OccurrencesError,
+        isLoading: OccurrencesIsLoading,
+        setOccurrenceDone,
+    } = useRoutineOccurrences({ due: today });
+
+    // Only needed to open the editor, so the page doesn't wait for it.
+    const routinesApi = useRoutines();
+    const routineEditor = useRoutineEditor(routinesApi);
+
+    const {
         data: CategoriesFetch,
         error: CategoriesError,
         isLoading: CategoriesIsLoading,
@@ -46,12 +61,23 @@ const TodayPage: NextPage = ({}): JSX.Element => {
         isLoading: ProjectsIsLoading,
     } = useProjects();
 
-    if (TasksIsLoading || CategoriesIsLoading || ProjectsIsLoading)
+    if (
+        TasksIsLoading ||
+        OccurrencesIsLoading ||
+        CategoriesIsLoading ||
+        ProjectsIsLoading
+    )
         return <LoadingSpinner />;
-    if (TasksError || CategoriesError || ProjectsError)
+    if (
+        TasksError ||
+        OccurrencesError ||
+        CategoriesError ||
+        ProjectsError
+    )
         return <p>Failed to load tasks.</p>;
 
     const tasksInDb = TasksFetch?.tasks ?? [];
+    const occurrencesInDb = OccurrencesFetch?.occurrences ?? [];
     const categoriesInDb = CategoriesFetch?.categories ?? [];
     const projectsInDb = ProjectsFetch?.projects ?? [];
 
@@ -66,11 +92,13 @@ const TodayPage: NextPage = ({}): JSX.Element => {
                 editor={editor}
                 defaultValues={{ defaultDueDate: today }}
             />
+            <RoutineEditorModal editor={routineEditor} />
             <main>
                 <Container>
                     <StyledPageTitle>Today</StyledPageTitle>
                     <TaskList
                         taskList={tasksInDb}
+                        routineOccurrences={occurrencesInDb}
                         categories={categoriesInDb}
                         categoriesVisible={true}
                         projects={projectsInDb}
@@ -81,6 +109,8 @@ const TodayPage: NextPage = ({}): JSX.Element => {
                         onSubmitSubTask={handleNewSubTask}
                         onDelete={handleDeleteTask}
                         onUpdateSubTask={handleUpdateTask}
+                        onRoutineCheckboxChange={setOccurrenceDone}
+                        onRoutineTitleClick={routineEditor.openEditRoutineForm}
                     />
                     <ButtonWrapper>
                         <ButtonPrimary

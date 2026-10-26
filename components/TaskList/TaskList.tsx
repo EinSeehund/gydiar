@@ -1,16 +1,26 @@
 import type { Task, TaskWithChildren } from "@/types/task";
 import type { Category } from "@/types/category";
 import type { Project } from "@/types/project";
+import type { RoutineOccurrence } from "@/types/routine";
 import { type SubmitEvent } from "react";
 import styled from "styled-components";
 import TaskListItem from "../TaskListItem/TaskListItem";
+import RoutineOccurrenceItem from "../RoutineOccurrenceItem/RoutineOccurrenceItem";
 import TaskSortPanel from "../TaskSortPanel/TaskSortPanel";
 import { useMemo } from "react";
 import { useTaskView } from "@/lib/hooks/useTaskView";
-import { applyTaskView, countOverdueTasks, type SortKey } from "@/lib/taskView";
+import {
+    applyTaskView,
+    countOverdueTasks,
+    countRoutines,
+    entryKey,
+    type ListEntry,
+    type SortKey,
+} from "@/lib/taskView";
 
 type TaskListProps = {
     taskList: Task[];
+    routineOccurrences?: RoutineOccurrence[];
     categories: Category[];
     categoriesVisible: boolean;
     projects: Project[];
@@ -24,10 +34,17 @@ type TaskListProps = {
     ) => void;
     onDelete: (id: number) => void;
     onUpdateSubTask: (event: SubmitEvent<HTMLFormElement>, id: number) => void;
+    onRoutineCheckboxChange?: (
+        routineId: number,
+        date: string,
+        done: boolean,
+    ) => void;
+    onRoutineTitleClick?: (routineId: number) => void;
 };
 
 export default function TaskList({
     taskList,
+    routineOccurrences = [],
     categories,
     categoriesVisible,
     projects,
@@ -38,8 +55,10 @@ export default function TaskList({
     onSubmitSubTask,
     onDelete,
     onUpdateSubTask,
+    onRoutineCheckboxChange = () => {},
+    onRoutineTitleClick = () => {},
 }: TaskListProps) {
-    const taskTree: TaskWithChildren[] = useMemo<TaskWithChildren[]>(() => {
+    const entries: ListEntry[] = useMemo<ListEntry[]>(() => {
         const childrenMap = new Map<number, Task[]>();
         const rootTasks: Task[] = [];
 
@@ -54,20 +73,28 @@ export default function TaskList({
             }
         });
 
-        return rootTasks.map((task) => ({
-            ...task,
-            children: childrenMap.get(task.id) ?? [],
-        }));
-    }, [taskList]);
+        return [
+            ...rootTasks.map(
+                (task): ListEntry => ({
+                    kind: "task",
+                    task: { ...task, children: childrenMap.get(task.id) ?? [] },
+                }),
+            ),
+            ...routineOccurrences.map(
+                (occurrence): ListEntry => ({ kind: "routine", occurrence }),
+            ),
+        ];
+    }, [taskList, routineOccurrences]);
 
-    const { view, setSort, setHideOverdue } = useTaskView({
+    const { view, setSort, setHideOverdue, setHideRoutines } = useTaskView({
         allowHideOverdueFilter,
     });
-    const sortedTaskTree = applyTaskView(taskTree, view, {
+    const sortedEntries = applyTaskView(entries, view, {
         categories,
         projects,
     });
-    const overdueCount = countOverdueTasks(taskTree);
+    const overdueCount = countOverdueTasks(entries);
+    const routineCount = countRoutines(entries);
 
     // Sorting by a column that is hidden (e.g. category on a category page) is pointless.
     const availableSortKeys: SortKey[] = [
@@ -77,10 +104,10 @@ export default function TaskList({
         "title",
     ];
 
-    function findCategory(taskObj: Task | TaskWithChildren) {
-        if (taskObj.category_id) {
+    function findCategory(categoryId: number | null) {
+        if (categoryId) {
             const foundCategory = categories.find(
-                (category) => category.id === taskObj.category_id,
+                (category) => category.id === categoryId,
             );
             if (foundCategory) {
                 return foundCategory;
@@ -101,10 +128,53 @@ export default function TaskList({
         return null;
     }
 
-    const hasNoTasks = taskList.length === 0;
-    const hasDoneTasks = taskList.some(
-        (task) => task.status === "done" && task.parent_task_id === null,
-    );
+    function isOpen(entry: ListEntry): boolean {
+        return entry.kind === "task"
+            ? entry.task.status === "open"
+            : entry.occurrence.status === "open";
+    }
+
+    // Missed routine occurrences are no longer actionable, so they sit with
+    // the done tasks.
+    function isDone(entry: ListEntry): boolean {
+        return entry.kind === "task"
+            ? entry.task.status === "done"
+            : entry.occurrence.status !== "open";
+    }
+
+    function renderEntry(entry: ListEntry) {
+        if (entry.kind === "routine") {
+            return (
+                <RoutineOccurrenceItem
+                    key={entryKey(entry)}
+                    occurrence={entry.occurrence}
+                    category={findCategory(entry.occurrence.category_id)}
+                    categoryVisible={categoriesVisible}
+                    onCheckboxChange={onRoutineCheckboxChange}
+                    onTitleClick={onRoutineTitleClick}
+                />
+            );
+        }
+        const { task } = entry;
+        return (
+            <TaskListItem
+                key={entryKey(entry)}
+                task={task}
+                category={findCategory(task.category_id)}
+                categoryVisible={categoriesVisible}
+                project={findProject(task)}
+                projectVisible={projectsVisible}
+                onCheckboxChange={onCheckboxChange}
+                onTitleClick={onTitleClick}
+                onSubmitSubTask={onSubmitSubTask}
+                onDelete={onDelete}
+                onUpdateSubTask={onUpdateSubTask}
+            />
+        );
+    }
+
+    const hasNoTasks = entries.length === 0;
+    const hasDoneTasks = sortedEntries.some(isDone);
 
     return (
         <TaskListWrapper>
@@ -127,56 +197,21 @@ export default function TaskList({
                     overdueCount={
                         allowHideOverdueFilter ? overdueCount : undefined
                     }
+                    hideRoutines={routineCount > 0 ? view.hideRoutines : undefined}
+                    onHideRoutinesChange={
+                        routineCount > 0 ? setHideRoutines : undefined
+                    }
+                    routineCount={routineCount > 0 ? routineCount : undefined}
                 />
             )}
             <TaskListOpen>
-                {sortedTaskTree
-                    .filter(
-                        (task) =>
-                            task.status === "open" &&
-                            task.parent_task_id === null,
-                    )
-                    .map((task) => (
-                        <TaskListItem
-                            key={task.id}
-                            task={task}
-                            category={findCategory(task)}
-                            categoryVisible={categoriesVisible}
-                            project={findProject(task)}
-                            projectVisible={projectsVisible}
-                            onCheckboxChange={onCheckboxChange}
-                            onTitleClick={onTitleClick}
-                            onSubmitSubTask={onSubmitSubTask}
-                            onDelete={onDelete}
-                            onUpdateSubTask={onUpdateSubTask}
-                        />
-                    ))}
+                {sortedEntries.filter(isOpen).map(renderEntry)}
             </TaskListOpen>
             {hasDoneTasks && (
                 <StyledDetails>
                     <StyledSummary>Done Tasks</StyledSummary>
                     <TaskListDone>
-                        {sortedTaskTree
-                            .filter(
-                                (task) =>
-                                    task.status === "done" &&
-                                    task.parent_task_id === null,
-                            )
-                            .map((task) => (
-                                    <TaskListItem
-                                        key={task.id}
-                                        task={task}
-                                        category={findCategory(task)}
-                                        categoryVisible={categoriesVisible}
-                                        project={findProject(task)}
-                                        projectVisible={projectsVisible}
-                                        onCheckboxChange={onCheckboxChange}
-                                        onTitleClick={onTitleClick}
-                                        onSubmitSubTask={onSubmitSubTask}
-                                        onDelete={onDelete}
-                                        onUpdateSubTask={onUpdateSubTask}
-                                    />
-                            ))}
+                        {sortedEntries.filter(isDone).map(renderEntry)}
                     </TaskListDone>
                 </StyledDetails>
             )}
